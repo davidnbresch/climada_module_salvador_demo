@@ -36,9 +36,9 @@ and then .../climada/modules/MODULE_NAME with contents such as
 * .../climada/modules/MODULE_NAME/data
 * .../climada/modules/MODULE_NAME/docs    
 
-This way, climada sources the code of all modules upon startup.  
+This way, climada sources the code of all modules upon startup. See [climada/docs/climada_manual.pdf](../../../climada/docs/climada_manual.pdf?raw=true) to get started
 
-see [climada/docs/climada_manual.pdf](../../../climada/docs/climada_manual.pdf?raw=true) to get started
+<br>
 
 copyright (c) 2015, David N. Bresch, david.bresch@gmail.com all rights reserved.
 
