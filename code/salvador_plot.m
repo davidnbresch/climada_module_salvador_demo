@@ -25,7 +25,7 @@ if ~climada_init_vars,return;end % init/import global variables
 %parameters
 % check_printplot = 0;
 check_printplot = 1;
-axislim = [-89.27 -89.13 13.63 13.7]; %salvador close up
+axislim         = [-89.27 -89.13 13.63 13.7]; %salvador close up
 
 % locate the module's data
 module_data_dir  = [fileparts(fileparts(mfilename('fullpath'))) filesep 'data'];
@@ -80,7 +80,7 @@ shapes   = climada_shaperead([GIS_open_dat_dir filesep shp_file],0,1,0,1); % 0 f
     
 
 %% read entity
-entity_file = [module_data_dir filesep 'entities' filesep 'entity_AMSS.mat'];
+entity_file = [climada_global.data_dir filesep 'entities' filesep 'entity_AMSS.mat'];
 if exist(entity_file,'file')
     load(entity_file)
 end
@@ -121,55 +121,73 @@ load(hazard_set_file_);
 % climada_plot_world_borders(0.5)
            
 %% plot figure for every asset class
-
-axislim = [-89.27 -89.13 13.63 13.7]; %salvador close up
-close all
-entity.assets.reference_year = 2015;
-categories     = unique(entity.assets.Category);
-category_names = entity.assets.Category_names(categories);
-% category_names = entity.assets.Categories(categories);
+axislim        = [-89.27 -89.13 13.63 13.7]; %salvador close up close all
+entity.assets.reference_year = 2015; 
+categories     = unique(entity.assets.Category); 
+category_names = entity.assets.Category_names(categories); 
+% category_names = entity.assets.Categories(categories); 
 category_units = entity.assets.Unit(categories);
-markersize     = 8;
+markersize     = 8; 
+% colors for admin 0,1,2
+colors_        = [139 139 122;...   % lightyellow 4
+                    0 104 139;...   % deepskyblue 4
+                  135 206 235]/255; % skyblue
+marker         = {'o' 'd' '^' 'p'}; 
 
-marker         = {'o' 'd' '^' 'p'};
 for cat_i = 1:length(categories)
-    
-    indx = entity.assets.Category == categories(cat_i);  
-    unit  = category_units{cat_i};
-    indx2 = ismember(entity.assets.Category,categories(strcmp(category_units, unit)));
-    miv   = min(entity.assets.Value(indx2));
+    indx  = entity.assets.Category == categories(cat_i); 
+    unit  = category_units{cat_i}; 
+    indx2 = ismember(entity.assets.Category,categories(strcmp(category_units,unit)));
+    miv   = min(entity.assets.Value(indx2)); 
     mav   = max(entity.assets.Value(indx2));
     
-    % create figure
-    fig = climada_figuresize(0.5,0.83);
-    %hold on   
+    % create figure 
+    fig = climada_figuresize(0.5,0.83); 
+    %hold on 
     cbar  = plotclr(entity.assets.lon(indx), entity.assets.lat(indx), entity.assets.Value(indx),marker{cat_i},markersize,1,...
             miv,mav,[],0,0);
-    grid off 
-    plot(focus_shp.lon,focus_shp.lat,'color','k','linewidth',1);%black  
-    plot(AMSS.lon,AMSS.lat,'color',[173 173 173]/255,'linewidth',1);%grey    
-    %plot(rios.lon,rios.lat,'color',[173 173 173]/255,'linewidth',1);%grey  
-    axis(axislim)
-    axis equal
-    if cat_i == 1
-        axis(axislim)
+    grid off
+    plot(focus_shp.lon,focus_shp.lat,'color','k','linewidth',1);%black
+    plot(AMSS.lon,AMSS.lat,'color',[173 173 173]/255,'linewidth',1);%grey
+    %plot(rios.lon,rios.lat,'color',[173 173 173]/255,'linewidth',1);%grey
+    
+    axis(axislim) 
+    %axis equal 
+    %if cat_i == 1
+    %    axis(axislim)
+    %end
+    
+    % plot administrative boundaries 
+    shp_file_ = 'SLV_adm'; 
+    for i = 2:-1:0
+        shp_file = sprintf('%s%d.shp',shp_file_,i);
+        shapes   = climada_shaperead([GIS_open_dat_dir filesep shp_file],0,1,0,1); %0 for no-save 
+        for shape_i=1:length(shapes)
+            h(i+1)   = plot(shapes(shape_i).X,shapes(shape_i).Y,'color',colors_(i+1,:));
+            %pos=find(~isnan(shapes(shape_i).X)); % remove NaN to fill
+            %plot(shapes(shape_i).X(pos),shapes(shape_i).Y(pos));
+            %fill(shapes(shape_i).X(pos),shapes(shape_i).Y(pos),color_list(color_i)),hold on
+        end % shape_i
     end
-    set(get(cbar,'ylabel'),'String', sprintf('Value per pixel (%s)', unit) ,'fontsize',12);  
-    titlestr = sprintf('San Salvador, El Garrobo, %s (Total %2.3g %s)', category_names{cat_i}, sum(entity.assets.Value(indx)), unit);
-    title(titlestr)
-    %climada_plot_world_borders(0.5,'','',1);
-    box on
-    
-    foldername = sprintf('%sresults%sSanSalvador%sValues_AMSS_%s.pdf', filesep,filesep,filesep,category_names{cat_i});
-    print(fig,'-dpdf',[climada_global.data_dir foldername])
-    close
-    
 end
+legend(h,'SLV admin 0','SLV admin 1','SLV admin 2')
+
+%axislim = [-89.27 -89.17 13.63 13.7]; %salvador close up 
+%daspect
+%pbaspect
+
+set(get(cbar,'ylabel'),'String', sprintf('Value per pixel (%s)', unit) ,'fontsize',12); 
+titlestr = sprintf('San Salvador, El Garrobo, %s (Total %2.3g %s)', category_names{cat_i}, sum(entity.assets.Value(indx)), unit); 
+title(titlestr)
+%climada_plot_world_borders(0.5,'','',1); 
+box on
+foldername = sprintf('%sresults%sSanSalvador%sValues_AMSS_%s.pdf', filesep,filesep,filesep,category_names{cat_i});
+print(fig,'-dpdf',[climada_global.data_dir foldername])
+close
+    
 
 
-%% plot all asset categories with 100 year flood
-
-
+%% plot all asset categories with all 9 flood events
 close all
 entity.assets.reference_year = 2015;
 categories     = unique(entity.assets.Category);
@@ -178,15 +196,31 @@ category_names = entity.assets.Category_names(categories);
 category_units = entity.assets.Unit(categories);
 markersize     = 8;
 marker         = {'o' 'd' '^' 'p'};
+caxis_range    = [0 500];
 markercolor_   = [255  99  71;...   %tomato 
                   238 154   0; ...  %orange 2
                   154 205  50; ...  %olivedrab 3
                    34 139  34]/255; %forestgreen
+               
 for i = 1:9
     % create figure
     fig = climada_figuresize(0.8,1);
-    plot(focus_shp.lon,focus_shp.lat,'color','k','linewidth',1);%black  
+    
+    % plot hazard event
+    %i = 1;
+    climada_hazard_plot(hazard, i,'',caxis_range);
     hold on 
+    set(get(colorbar,'ylabel'),'string',sprintf('hazard intensity (%s)',hazard.units),'fontsize',12)
+    
+    axislim = [-89.2265 -89.182 13.655 13.69];
+    axis(axislim)
+    %axis equal
+    %if cat_i == 1
+    %    %axis(axislim)
+    %end
+    
+    % shape files
+    plot(focus_shp.lon,focus_shp.lat,'color','k','linewidth',1);%black  
     plot(AMSS.lon,AMSS.lat,'color',[173 173 173]/255,'linewidth',1);%grey    
 
     for cat_i = length(categories):-1:1
@@ -199,11 +233,21 @@ for i = 1:9
     %climada_plot_world_borders(0.5,'','',1);
     box on
     legend(h,category_names,'location','southoutside')
-
-    % plot hazard event
-    %i = 1;
-    climada_hazard_plot_hr(hazard, i);
-
+    
+    % plot administrative boundaries
+    shp_file_ = 'SLV_adm';
+    for ii = 2:-1:0
+        shp_file = sprintf('%s%d.shp',shp_file_,ii);
+        shapes   = climada_shaperead([GIS_open_dat_dir filesep shp_file],0,1,0,1); % 0 for no-save
+        for shape_i=1:length(shapes)
+            h(ii+1) = plot(shapes(shape_i).X,shapes(shape_i).Y,'color',colors_(ii+1,:));
+            %pos=find(~isnan(shapes(shape_i).X)); % remove NaN to fill
+            %plot(shapes(shape_i).X(pos),shapes(shape_i).Y(pos));
+            %fill(shapes(shape_i).X(pos),shapes(shape_i).Y(pos),color_list(color_i)),hold on
+        end % shape_i
+    end
+    %legend(h,'SLV admin 0','SLV admin 1','SLV admin 2')
+    
     % set title
     if i >6
         titlestr = sprintf('San Salvador, El Garrobo, Flood %s', hazard.name{i});
@@ -212,94 +256,18 @@ for i = 1:9
     end
     title(titlestr)
 
-    axislim = [-89.2265 -89.182 13.655 13.69];
-    axis(axislim)
-    axis equal
-    if cat_i == 1
-        axis(axislim)
-    end
-
     if i>6
         foldername = sprintf('%sresults%sSanSalvador%sFlood_El_Garrobbo_%s.pdf', filesep,filesep,filesep,hazard.name{i});
     else
         foldername = sprintf('%sresults%sSanSalvador%sFlood_El_Garrobbo_%d_year_return_period.pdf', filesep,filesep,filesep,1/hazard.frequency(i));
     end
     print(fig,'-dpdf',[climada_global.data_dir foldername])
-    % close
+    close
 end
-
-
-
-
-%% plot all flood events
-for i = 1:9
-    fig = climada_figuresize(0.5,0.83);
-    plot(focus_shp.lon,focus_shp.lat,'color','k','linewidth',1);%black  
-    hold on 
-    plot(AMSS.lon,AMSS.lat,'color',[173 173 173]/255,'linewidth',1);%grey    
-    climada_hazard_plot_hr(hazard, i);
-end
-
-
-
-%%
-
-% % printname = '';
-% if check_printplot
-%     if isempty(printname) %local GUI
-%         printname_         = [climada_global.data_dir filesep 'results' filesep '*.pdf'];
-%         printname_default  = [climada_global.data_dir filesep 'results' filesep 'type_name.pdf'];
-%         [filename, pathname] = uiputfile(printname_,  'Save BCC figure as:',printname_default);
-%         foldername = [pathname filename];
-%         if pathname <= 0; return;end
-%     else
-%         foldername = [climada_global.data_dir filesep 'results' filesep 'BCC_ward_plot.pdf'];
-%     end
-%     print(fig,'-dpdf',foldername)
-%     cprintf([255 127 36 ]/255,'\t\t saved 1 FIGURE in folder ..%s \n', foldername);
-% end
-    
-
-% % ward
-% for w_i=1:length(BCC_wards2)
-%     h(3)= plot(BCC_wards2(w_i).lon,BCC_wards2(w_i).lat,'color',[244 164 96 ]/255,'linewidth',2);%sandybrown
-%     %h(3)= fill(BCC_wards(w_i).lon,BCC_wards(w_i).lat,[244 164 96 ]/255);%sandybrown
-% end
-% figure
-% w_i= 1;
-% h(3)= plot(BCC_wards(w_i).lon,BCC_wards(w_i).lat,'color','b','linewidth',2);%sandybrown
-% hold on
-% fill(BCC_wards(w_i).X,BCC_wards(w_i).Y,[244 164 96 ]/255);%sandybrown
+   
 
 return
 
 
-
-%% for all admin layers
-
-% colors_ = jet(4);
-% % admin1,2,3,4
-% shp_file_ = 'BGD_adm';
-% for i = 4:-1:1
-%     shp_file = sprintf('%s%d.shp',shp_file_,i);
-%     shapes   = climada_shaperead([GIS_open_dat_dir filesep shp_file],0,1,0,1); % 0 for no-save
-%     for shape_i=1:length(shapes)
-%         if strcmp(shapes(shape_i).Geometry,'Polygon')
-%             h(i+1) = plot(shapes(shape_i).X,shapes(shape_i).Y,'color',colors_(i,:));
-%             
-%             %pos=find(~isnan(shapes(shape_i).X)); % remove NaN to fill
-%             %plot(shapes(shape_i).X(pos),shapes(shape_i).Y(pos));
-%             %fill(shapes(shape_i).X(pos),shapes(shape_i).Y(pos),color_list(color_i)),hold on
-%         else % most others either 'Point' or 'Line'
-%             %if strcmp(fN,'buildings')
-%             %    plot3(shapes(shape_i).X,shapes(shape_i).Y,zeros(size(shapes(shape_i).X))+10, ['s' color_list(color_i)]),hold on  
-%             %else
-%             %    plot3(shapes(shape_i).X,shapes(shape_i).Y,zeros(size(shapes(shape_i).X))+10, ['-' color_list(color_i)]),hold on
-%             %end
-%         end
-%     end % shape_i
-% end
-% 
-% legend(h,'BCC boundaries','admin4', 'admin3', 'admin2', 'admin1')
 
 
