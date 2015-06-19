@@ -16,7 +16,9 @@ cc_scenario = {'no change'};
 timehorizon = [2015 2030 2050];
 
 % set foldername
-foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\';
+% foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\';
+foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\rio_acelhuate\';
+
 
 
 %% loop over hazards
@@ -65,15 +67,28 @@ for h_i = 1:length(hazard_names)
         end
         
         % read hazard from asci-file
-        hazard = climada_asci2hazard([foldername folder_ filename],6);
-        hazard2 = climada_asci2hazard([foldername folder_ 'AGATHA0.asc'],6);
-        hazard3 = climada_asci2hazard([foldername folder_ 'DT12E0.asc'],6);
-        hazard4 = climada_asci2hazard([foldername folder_ 'IDA0.asc'],6);
+        hazard = climada_asci2hazard([foldername folder_ filename],6,'salvador');
+        
+        %for garrobo
+        %hazard2 = climada_asci2hazard([foldername folder_ 'AGATHA0.asc'],6);
+        %hazard3 = climada_asci2hazard([foldername folder_ 'DT12E0.asc'],6);
+        %hazard4 = climada_asci2hazard([foldername folder_ 'IDA0.asc'],6);
+        % reordering
+        %indx_order = [4 6 2 3 5 1];
+        %frequency  = 1./[2 5 10 25 50 100];
+        
+        %for acelhuate
+        %hazard2 = climada_asci2hazard([foldername folder_ 'MAPA_AGATHA0.asc'],6);
+        %hazard3 = climada_asci2hazard([foldername folder_ 'MAPA_DT12E0.asc'],6);
+        %hazard4 = climada_asci2hazard([foldername folder_ 'MAPA_IDA00.asc'],6);
+        %hazard5 = climada_asci2hazard([foldername folder_ 'BUS_ELIMI0.asc'],6);
+        % reordering
+        indx_order = [5 7 2 3 4 6 1];
+        frequency  = 1./[2 5 10 20 25 50 100];
+        
         % reordering
         hazard.intensity_ori = hazard.intensity;
         hazard.name_ori      = hazard.name;
-        indx_order = [4 6 2 3 5 1];
-        frequency  = 1./[2 5 10 25 50 100];
         for i=1:6
             hazard.intensity(i,:) = hazard.intensity_ori(indx_order(i),:);
             hazard.frequency(i)   = frequency(i);
@@ -87,24 +102,26 @@ for h_i = 1:length(hazard_names)
         hazard.units    = units;
         
         % add additional rain events
-        hazard.intensity(end+1,:) = hazard2.intensity;
-        hazard.intensity(end+1,:) = hazard3.intensity;
-        hazard.intensity(end+1,:) = hazard4.intensity;
-        hazard.name{end+1} = 'Agatha';
-        hazard.name{end+1} = 'DT12E';
-        hazard.name{end+1} = 'Ida';
-        hazard.frequency(7:9) = 1/50;
+        %hazard.intensity(end+1,:) = hazard2.intensity;
+        %hazard.intensity(end+1,:) = hazard3.intensity;
+        %hazard.intensity(end+1,:) = hazard4.intensity;
+        %hazard.intensity(end+1,:) = hazard5.intensity;
+        %hazard.name{end+1} = 'Agatha';
+        %hazard.name{end+1} = 'DT12E';
+        %hazard.name{end+1} = 'Ida';
+        %hazard.name{end+1} = 'Bus eliminado';
+        %hazard.frequency(7:9) = 1/50;
         hazard.orig_years  = 100;
-        hazard.event_count = 9;
+        hazard.event_count = 7; %9
         hazard.event_ID    = 1:hazard.event_count;
         hazard.orig_event_count = hazard.event_count;
         hazard.orig_event_flag  = ones(size(hazard.frequency));
-        hazard.datenum(7:9)     = datenum({'29 May 2010' '10 Oct 2011' '4 Nov 2009'});
-        for j = 7:9
-            hazard.yyyy(j) = str2num(datestr(hazard.datenum(j),'YYYY'));
-            hazard.mm(j)   = str2num(datestr(hazard.datenum(j),'mm'));
-            hazard.dd(j)   = str2num(datestr(hazard.datenum(j),'dd'));
-        end
+        %hazard.datenum(7:9)     = datenum({'29 May 2010' '10 Oct 2011' '4 Nov 2009'});
+        %for j = 7:9
+        %    hazard.yyyy(j) = str2num(datestr(hazard.datenum(j),'YYYY'));
+        %    hazard.mm(j)   = str2num(datestr(hazard.datenum(j),'mm'));
+        %    hazard.dd(j)   = str2num(datestr(hazard.datenum(j),'dd'));
+        %end
         % divide intensity by 100, so that we have meters
         %hazard.intensity  = hazard.intensity/100;
         hazard = rmfield(hazard,'name_ori');

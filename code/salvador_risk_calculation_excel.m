@@ -11,7 +11,7 @@
 
 salvador_hazard_read.m
 
-for i = 1:6
+for i = 1:7
     figure
     climada_hazard_plot_hr(hazard,i);
 end
