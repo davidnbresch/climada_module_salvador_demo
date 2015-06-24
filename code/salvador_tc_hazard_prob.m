@@ -226,6 +226,7 @@ hazard_set_file = [climada_global.data_dir filesep 'hazards' filesep 'Salvador_h
 hazard = climada_tc_hazard_set(tc_track, hazard_set_file, centroids);
 
 
+
 %% find centroid in San Salvador (centroid_i = 83)
 fig = climada_figuresize(0.5,0.7);
 check_country = 'El Salvador';
@@ -258,6 +259,10 @@ save(hazard_set_file,'hazard')
 hazard_set_file = [climada_global.data_dir filesep 'hazards' filesep 'Salvador_hazard_TC_prob'];
 load(hazard_set_file)
 
+%% tc wind stats
+climada_hazard_stats(hazard)
+foldername  = [filesep 'results' filesep 'TC_wind_stats_Salvador.pdf'];
+print(gcf,'-dpdf',[climada_global.data_dir foldername])
 
 %% view wind results in San Salvador (centroid ID 83)
 centroid_i = 83;

@@ -68,6 +68,7 @@ for h_i = 1:length(hazard_names)
         
         % read hazard from asci-file
         hazard = climada_asci2hazard([foldername folder_ filename],6,'salvador');
+        hazard = climada_asci2hazard('',6,'salvador');
         
         %for garrobo
         %hazard2 = climada_asci2hazard([foldername folder_ 'AGATHA0.asc'],6);
