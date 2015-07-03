@@ -1,3 +1,50 @@
+
+% read UCA entity for Rio Acelhuate
+entity_dirname  = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\entity';
+entity_filename = 'listado_viviendas01072015.xls';
+assets = climada_xlsread(0,[entity_dirname filesep entity_filename]);
+
+% convert utm to lat/lon
+[assets.lon, assets.lat] = utm2ll_salvador(assets.coordX, assets.coordY);
+% [entity,entity_save_file] = climada_entity_read([entity_dirname filesep entity_filename],'');
+
+% plot in figure
+figure
+plotclr(assets.lon, assets.lat, assets.PRECIO_BIENES_NIV1,'s',4,1,[],[],cmap)
+%  [h h_points] = plotclr(x,y,v, marker, markersize, colorbar_on, miv, mav, map, zero_off, v_exp)
+
+
+%find unique asset values
+values_unique = unique(assets.PRECIO_BIENES_NIV1);
+cmap          = climada_colormap('damage',numel(values_unique)+1);
+
+transp  = 0.85;
+for i = 1:size(cmap,1)
+    colorHex(i,:) = kml.color2kmlHex([cmap(i,:) transp]);
+end
+ 
+
+% create google earth kmz
+google_earth_save = [climada_global.data_dir filesep 'results' filesep 'SanSalvador' filesep 'Rio_Acelhuate_entity_UCA.kmz'];
+k = kml(google_earth_save);
+
+for i = 1:numel(values_unique)
+    indx = assets.PRECIO_BIENES_NIV1 == values_unique(i);
+    kk = k.newFolder(sprintf('Precio bienes nivel 1: %d USD',values_unique(i)));
+    %kk.plot(assets.lon(indx), assets.lat(indx), 'lineColor','50B4B414');
+    %kk.plot(assets.lon(indx), assets.lat(indx), 'lineColor',['FF' ge_color(cmap(i+1,:))]);
+    
+    kk.point(assets.lon(indx), assets.lat(indx), ones(1,sum(indx))*100, ...
+            'description','test',...
+            'iconURL','http://maps.google.com/mapfiles/kml/shapes/donut.png',...
+            'iconScale',0.5,...
+            'iconColor',colorHex(i,:));
+end
+k.run 
+
+
+
+
 %% prepare salvador, el garrobo entity
 
 %hazard type
