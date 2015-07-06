@@ -1,4 +1,26 @@
 
+
+
+
+
+%% load pre-calculate tc hazard for san salvador
+hazard_set_file = [climada_global.data_dir filesep 'hazards' filesep 'Salvador_hazard_TC_prob'];
+load(hazard_set_file)
+
+% visualize tc tracks that come close to salvador (see box definition
+% inpoly further below in this code) -- take a lot of time
+% tc_track_close_salvador = tc_track(find(inpoly_indx));
+% google_earth_save = [climada_global.data_dir filesep 'tc_tracks' filesep 'tc_tracks_epa_atl_close_to_salvador.kmz'];
+% climada_tc_track_google_earth(tc_track_close_salvador, google_earth_save)
+
+% create hazard statistics
+climada_hazard_stats(hazard,[20 30 40 50 100 200])
+print(gcf,'-dpdf',[climada_global.data_dir filesep 'results' filesep 'SanSalvador' filesep 'TC_hazard_map_EastPacific_Atlantic.pdf'])
+
+
+
+
+
 %% read and save historical tc tracks
 climada_tc_get_unisys_databases
 % west pacific
@@ -267,7 +289,7 @@ print(gcf,'-dpdf',[climada_global.data_dir foldername])
 %% view wind results in San Salvador (centroid ID 83)
 centroid_i = 83;
 IFC = climada_hazard2IFC(hazard, centroid_i);
-close all
+% close all
 figure
 climada_IFC_plot(IFC,0)
 axis([0 250 0 60])
