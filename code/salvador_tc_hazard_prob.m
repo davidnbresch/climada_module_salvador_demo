@@ -3,7 +3,7 @@
 
 
 
-%% load pre-calculate tc hazard for san salvador
+%% load pre-calculated tc hazard for san salvador
 hazard_set_file = [climada_global.data_dir filesep 'hazards' filesep 'Salvador_hazard_TC_prob'];
 load(hazard_set_file)
 
@@ -267,17 +267,25 @@ plot(centroids.lon(centroid_i), centroids.lat(centroid_i), 'dg')
 
 
 %% tweek the frequencies
-hazard.frequency_ori = hazard.frequency;
-hazard.frequency     = hazard.frequency_ori*3;
-% ori_flag          = logical(hazard.orig_event_flag);
-% hazard.frequency(ori_flag) = hazard.frequency_ori(ori_flag);
-save(hazard_set_file,'hazard')
+% hazard.frequency_ori = hazard.frequency;
+% hazard.frequency     = hazard.frequency_ori*3;
+% % ori_flag          = logical(hazard.orig_event_flag);
+% % hazard.frequency(ori_flag) = hazard.frequency_ori(ori_flag);
+% save(hazard_set_file,'hazard')
+% 
+% % add tc track category manually
+% % hazard.category = [tc_track.category];
+% % hazard.category(hazard.category<0) = 0;
 
-% add tc track category manually
-% hazard.category = [tc_track.category];
-% hazard.category(hazard.category<0) = 0;
 
-% just loading not calculating
+
+
+
+%% ----------------------------------------------------------
+% ---start here if hazard has alread been calculated---------
+% -----------------------------------------------------------
+
+%% just loading not calculating
 hazard_set_file = [climada_global.data_dir filesep 'hazards' filesep 'Salvador_hazard_TC_prob'];
 load(hazard_set_file)
 
@@ -293,8 +301,11 @@ IFC = climada_hazard2IFC(hazard, centroid_i);
 figure
 climada_IFC_plot(IFC,0)
 axis([0 250 0 60])
-foldername  = [filesep 'results' filesep 'TC_wind_intensity_Salvador.pdf'];
+title({'Probabilistic cyclone wind speeds in San Salvador'; '(based on historial tracks from the East Pacific and North Atlantic)'})
+foldername  = [filesep 'results' filesep 'SanSalvador' filesep 'TC_wind_intensity_Salvador_probabilistic.pdf'];
 print(gcf,'-dpdf',[climada_global.data_dir foldername])
+foldername  = [filesep 'results' filesep 'SanSalvador' filesep 'IFC_TC_intensity_Salvador.mat'];
+save([climada_global.data_dir foldername],'IFC')
 
 
 %% was the max event Miriam? (Nov 1988)
