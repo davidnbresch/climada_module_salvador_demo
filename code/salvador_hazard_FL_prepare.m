@@ -6,6 +6,7 @@
 
 
 %% read DEM grid (dem-municipios.txt)
+
 foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\mudslides\system\';
 % asci_file = [foldername 'dem-municipiosll.txt'];
 asci_file = [foldername 'dem-municipios.txt'];
@@ -29,10 +30,27 @@ for i = 1:row_count
 end
 fclose(fid);
 
+%%
+
 % read asci-file
 delimiter = '';
 % delimiter = ' ';
 % delimiter = '\t';
+
+% shift in DEM
+shift_x = 473460.90240-473437.90240;
+shift_y = 283998.50000-283883.50000;
+
+% apply shift in x and y
+xllcorner = xllcorner+shift_x;
+yllcorner = yllcorner+shift_y; 
+
+% 473437.90240 + shift_x
+% 283883.50000 + shift_y
+% 456064.365625+shift_x
+% 267347.04962761+shift_y
+dem.X = dem.X+shift_x;
+dem.Y = dem.Y+shift_y;
 
 dem_grid = flipud(dlmread(asci_file,delimiter,row_count,0));
 % set nodata values to 0
@@ -43,6 +61,22 @@ y_dem = linspace(yllcorner,yllcorner+cellsize*nrows,nrows);
 %         [lon_max, lat_max] = utm2ll_shift(xllcorner+cellsize*ncols, yllcorner+cellsize*nrows);
 dem_comment = asci_file;
 
+
+dem_grid_100m = dem_grid(1:10:end, 1:10:end);
+dem_grid_100m(end,:) = [];
+dem_grid_100m(:,end) = [];
+dem_grid_100m(dem_grid_100m==NODATA_value) = 0;
+cellsize = cellsize*10;
+x_dem = linspace(xllcorner,xllcorner+cellsize*410,410);
+y_dem = linspace(yllcorner,yllcorner+cellsize*435,435);
+[X, Y ] = meshgrid(x_dem,y_dem);
+dem.X = reshape(X,1,numel(x_dem)*numel(y_dem));
+dem.Y = reshape(Y,1,numel(x_dem)*numel(y_dem));  
+dem.value = reshape(dem_grid_100m,1,numel(x_dem)*numel(y_dem));
+[dem.lon, dem.lat] = utm2ll_salvador(dem.X, dem.Y);
+dem.comment = sprintf('DEM on 100 m resolution, read from %s, including shift',dem_comment);
+dem.unit    = 'masl';
+save([climada_global.data_dir filesep 'system' filesep 'dem_san_savlador_100m_full_shift'],'dem');
 
 
 %% create vectors, .lon, .lat, .value
@@ -77,8 +111,8 @@ colorbar
 
 %% save dem
 save([climada_global.data_dir filesep 'system' filesep 'dem_san_savlador_10m'],'dem');
-
-
+% save([climada_global.data_dir filesep 'system' filesep 'dem_san_savlador_10m_full_shift'],'dem');
+save([climada_global.data_dir filesep 'system' filesep 'dem_san_savlador_10m_full_shift'],'dem');
 
 
 %% read inundation grid (TR50A0_test.txt)
