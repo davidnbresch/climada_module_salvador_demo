@@ -1,4 +1,58 @@
 
+
+% read UCA entity for Rio Acelhuate
+entity_dirname  = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\entity';
+entity_filename = ['20150720' filesep 'entity_AMSS.xls'];
+entity = climada_entity_read(0,[entity_dirname filesep entity_filename]);
+
+figure
+climada_damagefunctions_plot(entity)
+
+
+
+%% load admin shapes
+load([climada_global.data_dir filesep 'entities' filesep 'SLV_adm' filesep 'SLV_adm2.mat'])
+indx_salvador = find(strcmp({shapes.NAME_1},'San Salvador'));
+
+salvador_module_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
+shapes_river        = climada_shaperead([salvador_module_dir filesep 'rios_25k_polyline_WGS84.shp']);
+shape_plotter(shapes_river)
+
+
+%% create figures with asset maps for different categories
+categories_ = unique(entity.assets.Category);
+max_value   = max(entity.assets.Value);
+min_value   = min(entity.assets.Value);
+
+for c_i = 1:numel(categories_)+1
+    if c_i>numel(categories_)
+        indx = logical(entity.assets.lon);
+        titlestr = sprintf('All assets');
+    else
+        indx = entity.assets.Category == categories_(c_i);
+        titlestr = sprintf('Category %d',categories_(c_i));
+    end
+    climada_figuresize(0.3,0.9);
+    shape_plotter(shapes_river,'','','','-','color',[0.6 0.6 0.6])
+    hold on 
+    plotclr(entity.assets.lon(indx),entity.assets.lat(indx),entity.assets.Value(indx),'s',3,1,min_value,max_value);
+    title(titlestr)
+    shape_plotter(shapes(indx_salvador))
+    %axis equal
+    %axis([-89.3 -89.05 13.6 13.81])
+    box on
+    
+    %set(gca, 'PlotBoxAspectRatio', [1.3 1 1]);
+    axis([-89.26 -89.16 13.67 13.7])
+end
+
+
+%%
+
+
+
+
+
 % read UCA entity for Rio Acelhuate
 entity_dirname  = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\entity';
 entity_filename = 'listado_viviendas01072015.xls';
