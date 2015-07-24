@@ -1,5 +1,126 @@
 
-% prepare inunation hazard for San Salvador Rio Acelhuate (MARN data)
+
+%% LOAD INDUNDATION HAZARD AND CREATE FIGURES
+
+
+
+%% set directories  and load the data
+foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D\';
+% asci_file = [foldername 'TR50A0.asc'];
+asci_file = [foldername 'flood_gar_2yr_10m.asc'];
+salvador_module_system_dir = [climada_global.modules_dir filesep 'salvador_demo' filesep 'data' filesep 'system'];
+
+% load relevant shapes (adm2, rivers, polygon_LS, polygon_rio_acelhuate)
+load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
+
+% load inundation hazard
+load(strrep(asci_file,'.asc','.mat'))
+
+
+
+%% create figures
+climada_hazard_plot_hr(hazard,3);
+
+
+
+%%
+max_flood_m = 6;
+for e_i = 1:6
+    fig = climada_figuresize(0.3,0.8);
+    plotclr(hazard.lon, hazard.lat, hazard.intensity(e_i,:),'s',1,1,0,max_flood_m,climada_colormap(hazard.peril_ID));
+    hold on
+    shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+    box on
+    axis([min(hazard.lon) max(hazard.lon) min(hazard.lat) max(hazard.lat)])
+    title({['Flood Rio Acelhuate (m), ' sprintf('%d year return period',1./hazard.frequency(e_i))]; '1D from MARN, 2D from GFA, 10m resolution'})
+    x_y_ratio = climada_geo_distance(-89,14,-89.001,14)/climada_geo_distance(-89,14,-89,14.001);
+    x_ = max(hazard.lon)-min(hazard.lon);
+    y_ = max(hazard.lat)-min(hazard.lat);
+    set(gca, 'PlotBoxAspectRatio', [x_ y_*x_y_ratio 1]);
+    climada_figure_scale_add(gca,5,1)
+
+    foldername = sprintf('%sresults%sSanSalvador%sFlood_Rio_Acelhuate_%d_return_period_max_flood_%dm_%s.pdf', filesep,filesep,filesep,1./hazard.frequency(e_i),max_flood_m,datestr(now,'YYYYmmDD'));
+    print(fig,'-dpdf',[climada_global.data_dir foldername])
+    
+end
+
+%% difference in flood meter
+
+max_flood_m = 100;
+min_flood_m = 0;
+for e_i = 1:5
+    
+    value = (hazard.intensity(e_i+1,:)-hazard.intensity(e_i,:))./hazard.intensity(e_i,:)*100;
+    value(isnan(value)) = 0;
+    
+    fig = climada_figuresize(0.3,0.8);
+    plotclr(hazard.lon, hazard.lat, value,'s',1,1,min_flood_m,max_flood_m,climada_colormap(hazard.peril_ID));
+    hold on
+    shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+    box on
+    axis([min(hazard.lon) max(hazard.lon) min(hazard.lat) max(hazard.lat)])
+    title({['Differnce in flood height (m), ' sprintf('%d - %d year return period',1./hazard.frequency(e_i),1./hazard.frequency(e_i+1))]; '1D from MARN, 2D from GFA, 10m resolution'})
+    x_y_ratio = climada_geo_distance(-89,14,-89.001,14)/climada_geo_distance(-89,14,-89,14.001);
+    x_ = max(hazard.lon)-min(hazard.lon);
+    y_ = max(hazard.lat)-min(hazard.lat);
+    set(gca, 'PlotBoxAspectRatio', [x_ y_*x_y_ratio 1]);
+    climada_figure_scale_add(gca,5,1)
+
+    foldername = sprintf('%sresults%sSanSalvador%sFlood_Rio_Acelhuate_%d_%d_return_period_diff_m_%s.pdf', filesep,filesep,filesep,1./hazard.frequency(e_i),1./hazard.frequency(e_i+1),datestr(now,'YYYYmmDD'));
+    print(fig,'-dpdf',[climada_global.data_dir foldername])
+    
+end
+
+
+%%
+fig = climada_figuresize(0.4,0.8);
+plotclr(hazard.lon, hazard.lat, hazard.intensity_ori,'','',1)
+hold on
+box on
+title({'Flood Rio Acelhuate'; '50 years return period, not normalized '; '1D from MARN, 3m resolution'})
+% plot(hazard.lon(end), hazard.lat(end), 'rx')
+% hazard.intensity(end)
+foldername = sprintf('%sresults%sSanSalvador%sFlood_Rio_Acelhuate_%d_return_period_not_normalized.pdf', filesep,filesep,filesep,1/hazard.frequency(1));
+print(fig,'-dpdf',[climada_global.data_dir foldername])
+
+
+
+%% read inunation hazard for San Salvador Rio Acelhuate and Rio Garrobo
+%(MARN data 1D and from Maxime/GFA put )
+
+% set directories
+foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D\';
+% asci_file = [foldername 'TR50A0.asc'];
+asci_file = [foldername 'flood_gar_2yr_10m.asc'];
+
+% read hazard
+hazard = climada_asci2hazard_sansal(asci_file);
+
+% set ordering and frequencies
+order_indx = [4 6 2 3 5 1];
+hazard.intensity = hazard.intensity(order_indx,:);
+hazard.name      = hazard.name(order_indx);
+hazard.frequency = 1./[2 5 10 25 50 100];
+hazard.orig_years= 100;
+hazard.comment   = '1D modelled by MARN, 2D modelled by GFA';
+hazard.peril_ID  = 'FL';
+hazard.units     = 'm';
+
+% cut out relevant area for rio acelhuate
+hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
+
+% save flood hazard rio acelhuate
+save(strrep(asci_file,'.asc','.mat'),'hazard')
+
+
+
+
+
+
+
+
+
+%% prepare inunation hazard for San Salvador Rio Acelhuate (MARN data)
 % salvador inundation hazard
 % but MARN data is based on a 1D visualisation, so data is not useful for
 % flood damage modelling
