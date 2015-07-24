@@ -168,7 +168,7 @@ end
 centroids.basin_ID  = ones(size(centroids.lon));
 centroids.ET_mm_day = ones(size(centroids.lon))*1250./365;
 centroids.BD_kg_m3  = ones(size(centroids.lon))*1764; % bulk density
-centroids.WHC_mm    = ones(size(centroids.lon))*10;   % water holding capacity
+centroids.WHC_mm    = ones(size(centroids.lon))*244.54;% water holding capacity (mm, value for San Salvador)
 centroids.SD_m      = ones(size(centroids.lon))*5;    % soil depth
 centroids.LAI       = ones(size(centroids.lon))*0.4;  % leaf area index (m^2/m^2)
 centroids.RD        = ones(size(centroids.lon))*1;    % RD
