@@ -19,15 +19,14 @@ load(strrep(asci_file,'.asc','.mat'))
 
 
 %% create figures
-climada_hazard_plot_hr(hazard,3);
+% climada_hazard_plot_hr(hazard,3);
 
 
-
-%%
-max_flood_m = 6;
+max_flood_m = 7;
+markersize  = 1;
 for e_i = 1:6
-    fig = climada_figuresize(0.3,0.8);
-    plotclr(hazard.lon, hazard.lat, hazard.intensity(e_i,:),'s',1,1,0,max_flood_m,climada_colormap(hazard.peril_ID));
+    fig = climada_figuresize(0.4,0.8);
+    plotclr(hazard.lon, hazard.lat, hazard.intensity(e_i,:),'s',markersize,1,0,max_flood_m,climada_colormap(hazard.peril_ID));
     hold on
     shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
     box on
@@ -43,6 +42,7 @@ for e_i = 1:6
     print(fig,'-dpdf',[climada_global.data_dir foldername])
     
 end
+
 
 %% difference in flood meter
 
@@ -108,6 +108,14 @@ hazard.units     = 'm';
 
 % cut out relevant area for rio acelhuate
 hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
+
+
+% shift in lat/lon
+shift_lon = -0.002/10*6;
+hazard.lon = hazard.lon +shift_lon;
+
+shift_lat = -0.002/4;
+hazard.lat = hazard.lat +shift_lat;
 
 % save flood hazard rio acelhuate
 save(strrep(asci_file,'.asc','.mat'),'hazard')
@@ -183,6 +191,7 @@ y_dem = linspace(yllcorner,yllcorner+cellsize*nrows,nrows);
 dem_comment = asci_file;
 
 
+%% create 100 m DEM grid
 dem_grid_100m = dem_grid(1:10:end, 1:10:end);
 dem_grid_100m(end,:) = [];
 dem_grid_100m(:,end) = [];
