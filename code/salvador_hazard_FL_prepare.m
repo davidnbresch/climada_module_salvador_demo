@@ -8,13 +8,12 @@
 foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D\';
 % asci_file = [foldername 'TR50A0.asc'];
 asci_file = [foldername 'flood_gar_2yr_10m.asc'];
-salvador_module_system_dir = [climada_global.modules_dir filesep 'salvador_demo' filesep 'data' filesep 'system'];
 
 % load relevant shapes (adm2, rivers, polygon_LS, polygon_rio_acelhuate)
-load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
+load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
 
 % load inundation hazard
-load(strrep(asci_file,'.asc','.mat'))
+load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
 
 
 
@@ -72,16 +71,6 @@ for e_i = 1:5
 end
 
 
-%%
-fig = climada_figuresize(0.4,0.8);
-plotclr(hazard.lon, hazard.lat, hazard.intensity_ori,'','',1)
-hold on
-box on
-title({'Flood Rio Acelhuate'; '50 years return period, not normalized '; '1D from MARN, 3m resolution'})
-% plot(hazard.lon(end), hazard.lat(end), 'rx')
-% hazard.intensity(end)
-foldername = sprintf('%sresults%sSanSalvador%sFlood_Rio_Acelhuate_%d_return_period_not_normalized.pdf', filesep,filesep,filesep,1/hazard.frequency(1));
-print(fig,'-dpdf',[climada_global.data_dir foldername])
 
 
 
@@ -92,6 +81,9 @@ print(fig,'-dpdf',[climada_global.data_dir foldername])
 foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D\';
 % asci_file = [foldername 'TR50A0.asc'];
 asci_file = [foldername 'flood_gar_2yr_10m.asc'];
+
+% load relevant shapes (adm2, rivers, polygon_LS, polygon_rio_acelhuate)
+load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
 
 % read hazard
 hazard = climada_asci2hazard_sansal(asci_file);
@@ -118,7 +110,10 @@ shift_lat = -0.002/4;
 hazard.lat = hazard.lat +shift_lat;
 
 % save flood hazard rio acelhuate
-save(strrep(asci_file,'.asc','.mat'),'hazard')
+% save(strrep(asci_file,'.asc','.mat'),'hazard')
+save_name = [climada_global.project_dir filesep 'Salvador_hazard_FL_2015'];
+save(save_name,'hazard')
+fprintf('Save hazard in %s\n',save_name)
 
 
 
@@ -126,9 +121,7 @@ save(strrep(asci_file,'.asc','.mat'),'hazard')
 
 
 
-
-
-%% prepare inunation hazard for San Salvador Rio Acelhuate (MARN data)
+%% prepare inundation hazard for San Salvador Rio Acelhuate (MARN data)
 % salvador inundation hazard
 % but MARN data is based on a 1D visualisation, so data is not useful for
 % flood damage modelling
