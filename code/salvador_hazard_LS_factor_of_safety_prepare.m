@@ -241,7 +241,7 @@ hazard.peril_ID          = 'FS'; %factor of safety
 
 
 %% create centroids from DEM, 100m resolution
-load([climada_global.data_dir filesep 'system' filesep 'dem_san_savlador_10m_full_shift'])
+load([climada_global.data_dir filesep 'system' filesep 'dem_san_salvador_10m_full_shift'])
 centroids.lon = dem.lon;
 centroids.lat = dem.lat;
 centroids.elevation_m = dem.value;
@@ -272,8 +272,10 @@ centroids.centroid_ID = 1:numel(centroids.lat);
 centroids.onLand = ones(size(centroids.lon));
 
 % add DEM info to centroids
-% % load DEM
-load([climada_global.data_dir filesep 'system' filesep 'dem_san_savlador_10m_full_shift'])
+% resolution_m = 10;
+% dem = salvador_dem_read('',resolution_m,0);
+load([climada_global.project_dir filesep 'system' filesep 'Salvador_dem_10m_20150729'])
+% load([climada_global.project_dir filesep 'system' filesep 'dem_san_salvador_10m_full_shift'])
 
 % % only use dem values that are close to the hazard
 % indx_valid = inpoly([dem.lon' dem.lat'],[polygon_LS.lon polygon_LS.lat]);
@@ -300,21 +302,28 @@ save([salvador_data_dir filesep 'centroids_LS_500m'], 'centroids')
 % axis equal
 
 figure
-shape_plotter(shapes(indx_salvador))
 hold on
-plotclr(centroids.lon, centroids.lat, centroids.elevation_m, '','',1,400,1800);
+plotclr(dem.lon, dem.lat, dem.value, '','',1,400,1000);
+% plotclr(centroids.lon, centroids.lat, centroids.elevation_m, '','',1,400,1800);
+% shape_plotter(shapes(indx_salvador),'','X_ori','Y_ori')
+shape_plotter(shapes(indx_salvador))
+plot3(polygon_LS.lon_shift, polygon_LS.lat_shift,ones(size(polygon_LS.lat_shift))*3000, '-b');
+% plot3(polygon_LS.lon, polygon_LS.lat,ones(size(polygon_LS.lat))*4000, '-r');
 
-figure
-shape_plotter(shapes(indx_salvador))
-hold on
-plotclr(dem.lon, dem.lat, dem.value, '','',1);
-plot(polygon_LS.lon, polygon_LS.lat, '-b');
+
 % shift_x = +0.01/5;
 % % shift_y = -0.01/2;
 % dem.lon = dem.lon+shift_x;
 % % dem.lat = dem.lat+shift_y;
 % % plot(-89.16+shift_x,13.66+shift_y,'o')
 % % plot(-89.16,13.66,'o')
+
+% shift_lon = mean(dem_shift.lon - dem.lon); % shift_lon =  0.0044;
+% shift_lat = mean(dem_shift.lat - dem.lat); % shift_lat = -0.0079;
+shift_lon =  0.02/4;
+shift_lat = -0.02/6;
+polygon_LS.lon_shift = polygon_LS.lon - shift_lon;
+polygon_LS.lat_shift = polygon_LS.lat - shift_lat;
 
 
 
