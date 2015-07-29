@@ -27,6 +27,7 @@ function [dem, resolution_m] = salvador_dem_read(dem_filename, resolution_m, che
 %       .date_created: time when the dem structure has been generated
 % MODIFICATION HISTORY:
 %   Lea Mueller, muellele@gmail.com, 20150729, init
+%   Lea Mueller, muellele@gmail.com, 20150729, cutoff last column and row, only if resolution is coarser than original resolution
 % -
 
 dem          = []; % init
@@ -102,8 +103,10 @@ end
 %% create DEM grid on required resolution
 resolution_factor = ceil(resolution_m/cellsize);
 dem_grid          = dem_grid_ori(1:resolution_factor:end, 1:resolution_factor:end);
-dem_grid(end,:)   = [];
-dem_grid(:,end)   = [];
+if resolution_factor>1 % cut off last row and last column
+    dem_grid(end,:)   = [];
+    dem_grid(:,end)   = [];
+end
 dem_grid(dem_grid == NODATA_value) = 0;
 cellsize          = cellsize*resolution_factor;
 [dem_i, dem_j ]   = size(dem_grid);
