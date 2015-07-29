@@ -6,8 +6,10 @@
 % - indx_rios_in_San_Salvador: indx to select rivers within San Salvador center
 % - polygon_LS               : polygon that roughly defines San Salvador center, used for landslide susceptibility map
 % - polygon_rio_acelhuate    : polygon that roughly defines the Rio Acelhuate, used for focus area for flood hazard
-salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
-load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
+load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
+
+% salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
+% load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
 
 
 
@@ -16,14 +18,18 @@ load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador
 %% san salvador prepare shapefiles
 
 %% set data directories, load adm2, polygon_LS and rivers
-salvador_data_dir   = [climada_global.data_dir filesep 'results' filesep 'SanSalvador' filesep 'LS' filesep];
-salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
+salvador_data_dir          = climada_global.project_dir;
+salvador_module_system_dir = [climada_global.project_dir filesep 'system'];
 
 % load shp admin 2, polygon LS and centroids LS
-load([climada_global.data_dir filesep 'entities' filesep 'SLV_adm' filesep 'SLV_adm2.mat'])
-load([salvador_data_dir filesep 'polygon_LS'])
+load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
+consultant_shp_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'hazards' filesep 'landslides' filesep 'system'];
+shape_rios = climada_shaperead([consultant_shp_dir filesep 'rios_25k_polyline_WGS84.shp']);
 
-shape_rios = climada_shaperead([salvador_module_system_dir filesep 'rios_25k_polyline_WGS84.shp']);
+% load([climada_global.data_dir filesep 'entities' filesep 'SLV_adm' filesep 'SLV_adm2.mat'])
+% salvador_data_dir          = [climada_global.data_dir filesep 'results' filesep 'SanSalvador' filesep 'LS' filesep];
+% salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
+
 
 
 
@@ -74,8 +80,9 @@ end
 %% create polygon for rio acelhaute
 
 % load inundation hazard
-foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D\';
-asci_file = [foldername 'flood_gar_2yr_10m.asc'];
+foldername = [fileparts(fileparts(consultant_shp_dir)) filesep 'inundation' filesep '20150723_rio_acelhuate_rio_garrobo_2D'];
+% foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D';
+asci_file = [foldername filesep 'flood_gar_2yr_10m.asc'];
 load(strrep(asci_file,'.asc','.mat'))
 
 figure
@@ -87,7 +94,10 @@ plot(hazard.lon(indx), hazard.lat(indx),'ro');
 plot(poygon_rio_acelhuate.lon, poygon_rio_acelhuate.lat,'-.c');
 
 
+
 %% save shp results
-save([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rios','indx_rios_in_San_Salvador','polygon_LS','polygon_rio_acelhuate')
+% save([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rios','indx_rios_in_San_Salvador','polygon_LS','polygon_rio_acelhuate')
+save([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rios','indx_rios_in_San_Salvador','polygon_LS','polygon_rio_acelhuate')
+
 
 
