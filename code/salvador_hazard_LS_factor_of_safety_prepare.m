@@ -238,6 +238,10 @@ hazard.peril_ID          = 'FS'; %factor of safety
 % [polygon_LS.lon,polygon_LS.lat] = ginput;
 % polygon_LS.name = 'San Salvador, LS, polygon';
 % save([salvador_data_dir filesep 'polygon_LS'], 'polygon_LS')
+% 
+% [polygon_ilopango.lon,polygon_ilopango.lat] = ginput;
+% polygon_ilopango.name = 'San Salvador, Ilopango';
+
 
 
 %% create centroids from DEM, 100m resolution
