@@ -24,7 +24,8 @@ salvador_module_system_dir = [climada_global.project_dir filesep 'system'];
 % load shp admin 2, polygon LS and centroids LS
 load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
 consultant_shp_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'hazards' filesep 'landslides' filesep 'system'];
-shape_rios = climada_shaperead([consultant_shp_dir filesep 'rios_25k_polyline_WGS84.shp']);
+shape_rivers = climada_shaperead([consultant_shp_dir filesep 'rios_25k_polyline_WGS84.shp']);
+shape_roads  = climada_shaperead([consultant_shp_dir filesep 'el_salvador_highway.shp']);
 
 % load([climada_global.data_dir filesep 'entities' filesep 'SLV_adm' filesep 'SLV_adm2.mat'])
 % salvador_data_dir          = [climada_global.data_dir filesep 'results' filesep 'SanSalvador' filesep 'LS' filesep];
@@ -36,23 +37,41 @@ shape_rios = climada_shaperead([consultant_shp_dir filesep 'rios_25k_polyline_WG
 %% prepare river shapefile (apply shift in lat/lon)
 
 % find rivers that are in San Salvador center
-indx_rios_in_San_Salvador = zeros(1,numel(shape_rios));
-for s_i = 1:numel(shape_rios)
-    shape_rios(s_i).X(isnan(shape_rios(s_i).X)) = [];
-    shape_rios(s_i).Y(isnan(shape_rios(s_i).Y)) = [];
-    inpoly_indx = inpoly([shape_rios(s_i).X' shape_rios(s_i).Y'],[polygon_LS.lon polygon_LS.lat]);
+indx_rivers_in_San_Salvador = zeros(1,numel(shape_rivers));
+for s_i = 1:numel(shape_rivers)
+    shape_rivers(s_i).X(isnan(shape_rivers(s_i).X)) = [];
+    shape_rivers(s_i).Y(isnan(shape_rivers(s_i).Y)) = [];
+    inpoly_indx = inpoly([shape_rivers(s_i).X' shape_rivers(s_i).Y'],[polygon_LS.lon_shift polygon_LS.lat_shift]);
     if any(inpoly_indx)
-        indx_rios_in_San_Salvador(s_i) = 1;
+        indx_rivers_in_San_Salvador(s_i) = 1;
     end
 end
-indx_rios_in_San_Salvador = logical(indx_rios_in_San_Salvador);
+indx_rivers_in_San_Salvador = logical(indx_rivers_in_San_Salvador);
+
+% find roads that are in San Salvador center
+indx_roads_in_San_Salvador = zeros(1,numel(shape_roads));
+for s_i = 1:numel(shape_roads)
+    shape_roads(s_i).X(isnan(shape_roads(s_i).X)) = [];
+    shape_roads(s_i).Y(isnan(shape_roads(s_i).Y)) = [];
+    inpoly_indx = inpoly([shape_roads(s_i).X' shape_roads(s_i).Y'],[polygon_LS.lon_shift polygon_LS.lat_shift]);
+    if any(inpoly_indx)
+        indx_roads_in_San_Salvador(s_i) = 1;
+    end
+end
+indx_roads_in_San_Salvador = logical(indx_roads_in_San_Salvador);
 
 
 %% copy original values before shift
 % save original values, rivers
-for s_i = 1:numel(shape_rios)
-    shape_rios(s_i).X_ori = shape_rios(s_i).X;
-    shape_rios(s_i).Y_ori = shape_rios(s_i).Y;
+for s_i = 1:numel(shape_rivers)
+    shape_rivers(s_i).X_ori = shape_rivers(s_i).X;
+    shape_rivers(s_i).Y_ori = shape_rivers(s_i).Y;
+end
+
+% save original values, roads
+for s_i = 1:numel(shape_roads)
+    shape_roads(s_i).X_ori = shape_roads(s_i).X;
+    shape_roads(s_i).Y_ori = shape_roads(s_i).Y;
 end
 
 % save original values, adm 2
@@ -65,10 +84,15 @@ end
 %% apply shift in lon/lat for rios
 shift_lon = 0.02/4;
 shift_lat = -0.02/6;
-for s_i = 1:numel(shape_rios)
+for s_i = 1:numel(shape_rivers)
     % rivers
-    shape_rios(s_i).X = shape_rios(s_i).X_ori + shift_lon;
-    shape_rios(s_i).Y = shape_rios(s_i).Y_ori + shift_lat;
+    shape_rivers(s_i).X = shape_rivers(s_i).X_ori + shift_lon;
+    shape_rivers(s_i).Y = shape_rivers(s_i).Y_ori + shift_lat;
+end
+for s_i = 1:numel(shape_roads)
+    % roads
+    shape_roads(s_i).X = shape_roads(s_i).X_ori + shift_lon;
+    shape_roads(s_i).Y = shape_roads(s_i).Y_ori + shift_lat;
 end
 for s_i = 1:numel(shapes)  
     % admin level 2
@@ -97,7 +121,7 @@ plot(poygon_rio_acelhuate.lon, poygon_rio_acelhuate.lat,'-.c');
 
 %% save shp results
 % save([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rios','indx_rios_in_San_Salvador','polygon_LS','polygon_rio_acelhuate')
-save([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rios','indx_rios_in_San_Salvador','polygon_LS','polygon_rio_acelhuate')
+save([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rivers','shape_roads','indx_rivers_in_San_Salvador', 'indx_roads_in_San_Salvador','polygon_LS','polygon_rio_acelhuate','polygon_ilopango')
 
 
 
