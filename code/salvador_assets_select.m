@@ -1,4 +1,4 @@
-function is_selected = salvador_assets_select(entity,peril_criterum,unit_criterium, category_criterium)
+function [is_selected,peril_criterum,unit_criterium,category_criterium] = salvador_assets_select(entity,peril_criterum,unit_criterium,category_criterium)
 %  Create a selection array to select a subset of asset locations
 % MODULE:
 %   salvador_demo
@@ -20,9 +20,14 @@ function is_selected = salvador_assets_select(entity,peril_criterum,unit_criteri
 %   unit_criterium: a string, e.g. 'USD' or 'people'
 %   category_criterium: a string or a number, e.g. 7
 % OUTPUTS:
-%   is_selected: a logical array that points to the selected asset locations
+%   is_selected   : a logical array that points to the selected asset locations
+%   peril_criterum: a string or a cell, e.g. 'FL' or 'TC'
+%   unit_criterium: a string or a cell, e.g. 'USD' or 'people'
+%   category_criterium: a string, cell or a number, e.g. 7
 % MODIFICATION HISTORY:
-%   Lea Mueller, muellele@gmail.com, 20150730
+%   Lea Mueller, muellele@gmail.com, 20150730, init
+%   Lea Mueller, muellele@gmail.com, 20150731, add outputs for criteria, e.g. if select only
+%                'TC', unit_criterium will return all corresponding units, e.g. USD and people
 % -
 
 
@@ -68,7 +73,6 @@ if ~isempty(category_criterium)
             is_category  = strcmp(entity.assets.Category, category_criterium);
         elseif isnumeric(category_criterium)
             is_category  = ismember(entity.assets.Category, category_criterium);
-            category_criterium = num2str(category_criterium);
         end
     end
 end
@@ -78,5 +82,53 @@ end
 % criterias
 is_selected = logical(is_selected .* is_unit .* is_category);
 
-fprintf('%d locations selected (%s, %s, %s)\n',sum(is_selected),peril_criterum, unit_criterium, category_criterium)
+
+% set empty peril criterium if not given, that goes together with selected
+% assets
+if isempty(peril_criterum)
+    if isfield(entity, 'damagefunctions')
+        if isfield(entity.damagefunctions, 'peril_ID')
+            DamageFunID_selected = unique(entity.assets.DamageFunID(is_selected));
+            has_DamageFunID      = ismember(entity.damagefunctions.DamageFunID,DamageFunID_selected);
+            peril_criterum       = unique(entity.damagefunctions.peril_ID(has_DamageFunID));
+        end
+    end    
+end
+
+% set empty unit or category criterium if not given, that goes together
+% with the selected unit/category criterium
+if isfield(entity.assets, 'Category') & isfield(entity.assets, 'Unit')
+    unit_criterium = unique(entity.assets.Unit(is_selected));
+    category_criterium     = unique(entity.assets.Category(is_selected));
+end
+
+% create strings for fprintf
+if iscell(peril_criterum)
+    peril_criterum_str = sprintf('%s, ',peril_criterum{:});
+    if numel(peril_criterum)>1
+        peril_criterum_str(end-1:end) = [];
+    end
+else
+    peril_criterum_str = peril_criterum;
+end
+
+if iscell(unit_criterium)
+    unit_criterium_str = sprintf('%s, ',unit_criterium{:});
+    if numel(unit_criterium)>1
+        unit_criterium_str(end-1:end) = [];
+    end
+else
+    unit_criterium_str = unit_criterium;
+end
+
+% transform num to string
+if isnumeric(category_criterium)
+    category_criterium_str = sprintf('%d, ',category_criterium);
+    category_criterium_str(end-1:end) = [];
+else
+    category_criterium_str = category_criterium;
+end
+           
+
+fprintf('%d locations selected (%s, %s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str, category_criterium_str)
 
