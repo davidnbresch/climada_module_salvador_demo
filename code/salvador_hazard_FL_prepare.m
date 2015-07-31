@@ -97,6 +97,7 @@ hazard.orig_years= 100;
 hazard.comment   = '1D modelled by MARN, 2D modelled by GFA';
 hazard.peril_ID  = 'FL';
 hazard.units     = 'm';
+hazard.filename  = '';
 
 % cut out relevant area for rio acelhuate
 hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
@@ -112,6 +113,7 @@ hazard.lat = hazard.lat +shift_lat;
 % save flood hazard rio acelhuate
 % save(strrep(asci_file,'.asc','.mat'),'hazard')
 save_name = [climada_global.project_dir filesep 'Salvador_hazard_FL_2015'];
+hazard.filename  = save_name;
 save(save_name,'hazard')
 fprintf('Save hazard in %s\n',save_name)
 
