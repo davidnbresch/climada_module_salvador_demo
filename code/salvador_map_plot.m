@@ -28,6 +28,7 @@ function fig = salvador_map_plot(entity,EDS,fieldname_to_plot,peril_criterum,uni
 %   a figure 
 % MODIFICATION HISTORY:
 % Lea Mueller, muellele@gmail.com, 20150731, init
+% Lea Mueller, muellele@gmail.com, 20150801, return if invalid selection
 %-
 
 global climada_global
@@ -74,9 +75,12 @@ end
 timehorizon  = 2015;
 [is_selected, peril_criterum, unit_criterium]...
              = salvador_assets_select(entity,peril_criterum, unit_criterium, category_criterium);
+if ~any(is_selected)    
+    fprintf('Invalid selection. \n'),return
+end         
 if iscell(unit_criterium); unit_criterium = unit_criterium{1}; end
 if iscell(peril_criterum); peril_criterum = peril_criterum{1}; end
-cbar_string  = sprintf('%s (%s)', regexprep(fieldname_to_plot,'(\<[a-z])','${upper($1)}'), unit_criterium);
+cbar_string  = sprintf('%s (%s)', regexprep(strrep(fieldname_to_plot,'_',' '),'(\<[a-z])','${upper($1)}'), unit_criterium);
 
 % set pdf filename
 pdf_filename = sprintf('Salvador_%s_%s_cat_%d_%s_%d.pdf',peril_criterum,fieldname_to_plot,...
