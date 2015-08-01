@@ -1,3 +1,142 @@
+
+
+%% salvador risk calculations
+
+% load FL hazard
+load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
+
+% load entity 2015
+load([climada_global.project_dir filesep 'Salvador_entity_2015'])
+
+% load EDS FL
+load([climada_global.project_dir filesep 'Salvador_EDS_FL_2015'])
+
+% set consultant_data_entity_dir
+consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
+
+% load shp files
+load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
+
+
+peril_description = {'flood in Rio Acelhuate' 'hurricane winds in AMSS' 'landslides in Ilopango'};
+
+%% read entity
+% entity today
+entity_file_xls = [consultant_data_entity_dir filesep 'entity_AMSS_NEW.xls'];
+entity = climada_entity_read(entity_file_xls,hazard);
+entity.assets.reference_year = 2015;
+entity.assets = rmfield(entity.assets,'VALNaN');
+entity.damagefunctions = rmfield(entity.damagefunctions,'VALNaN');
+% shift assets
+shift_lat = 0.01/10*1.1;
+entity.assets.lat = entity.assets.lat + shift_lat;
+entity = climada_assets_encode(entity,hazard);
+entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015.mat'];
+entity.assets.filename = entity_filename;
+save(entity_filename,'entity')
+
+
+%% calculate damage
+
+EDS = climada_EDS_calc(entity,hazard);
+save([climada_global.project_dir filesep 'Salvador_EDS_FL_2015'],'EDS')
+
+
+
+%% create entity figure
+fig = climada_figuresize(0.5,0.8);
+climada_entity_plot(entity,4)
+shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','','','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+% shape_plotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
+box on
+ax_limits = [-89.3 -89.05 13.64 13.81];
+climada_figure_axis_limits_equal_for_lat_lon(ax_limits)
+climada_figure_scale_add('',0,1)
+title('Assets 2015','fontsize',13)
+print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_2015.pdf'])
+
+
+%% create maps for selected fieldnames (assets or damage), peril FL, units (USD or people), and per category
+
+fieldname_list = {'assets' 'damage' 'damage_relative'};
+peril_list = 'FL';
+unit_list = {'USD' 'people'};
+category_list = unique(entity.assets.Category(salvador_assets_select(entity,'FL')));
+print_figure = 0;
+
+for f_i = 1:numel(fieldname_list)
+    for c_i = 1:numel(category_list)
+        salvador_map_plot(entity,EDS,fieldname_list{f_i},peril_list,'',category_list(c_i),print_figure);
+    end %c_i
+end %f_i
+
+% fieldname_to_plot = 'assets';
+% peril_criterium = 'FL';
+% unit_criterium = 'USD';
+% category_criterium = '';
+% salvador_map_plot(entity,'',fieldname_to_plot,peril_criterium,unit_criterium,category_criterium,print_figure);
+
+
+%% create figure assets FL and hazard FL
+fig = climada_figuresize(0.5,0.9);
+is_selected = salvador_assets_select(entity,'FL','USD');
+cbar = plotclr(entity.assets.lon(is_selected), entity.assets.lat(is_selected), entity.assets.Value(is_selected)/100000,...
+    'h',1,1,0,1,climada_colormap('assets'));
+shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+% shape_plotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
+cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end,:),...
+    's',1,1,0,6,climada_colormap('FL'));
+ax_limits = [-89.26 -89.15 13.67 13.71];
+climada_figure_axis_limits_equal_for_lat_lon(ax_limits)
+box on
+climada_figure_scale_add('',1,1)
+set(get(cbar,'ylabel'),'String', '100 year flood (m)','fontsize',13);
+title('Assets (Flood, 2015) and 100 year flood','fontsize',13)
+% print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_FL_2015_hazard_100_year.pdf'])
+print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_FL_2015_hazard_100_year__.pdf'])
+
+
+
+
+%% create ED report
+timehorizon = 2015;
+peril_ID    = 'FL';
+ED_filename = sprintf('ED_%s_%d_%s_2.xls', peril_ID, timehorizon,datestr(now,'YYYYmmdd'));
+climada_EDS_ED_at_centroid_report_xls(EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename])
+
+
+%% create damage frequency curve (DFC)
+fig = climada_figuresize(0.4, 0.6);
+plot(1./EDS.frequency, EDS.damage*10^-6,'.-')
+grid off
+xlabel('Return period (years)')
+ylabel('Damage (USD m)')
+title('Damage versus return period for Flood Rio Acelhuate, 2015')
+axis([0 105 0 85])
+textstr = {sprintf('Total values: USD %4.1f m', sum(entity.assets.Value(indx_assets))*10^-6); ...
+           sprintf('Annual expected damage: USD %4.1f m', EDS.ED*10^-6);...
+           sprintf('Annual expected damage: %4.1f %%', EDS.ED/sum(entity.assets.Value(indx_assets))*100)};
+text(2.5,82, textstr, 'verticalalignment','top','HorizontalAlignment','left','fontsize',11)
+print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_DFC_FL_2015.pdf'])
+
+% DFC = climada_EDS2DFC(EDS);
+% [fig,legend_str,return_period,sorted_damage] = climada_EDS_DFC(EDS);
+
+
+
+
+%%
+
+
+
+
+
+
+
+
+
+
+%%
 close all
 
 climada_global.waitbar = 0;
