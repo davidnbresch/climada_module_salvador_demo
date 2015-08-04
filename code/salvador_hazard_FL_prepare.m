@@ -17,6 +17,7 @@ load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
 
 
 
+
 %% create figures
 % climada_hazard_plot_hr(hazard,3);
 
@@ -89,7 +90,7 @@ load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm
 hazard = climada_asci2hazard_sansal(asci_file);
 
 % set ordering and frequencies
-order_indx = [4 6 2 3 5 1];
+order_indx       = [4 6 2 3 5 1];
 hazard.intensity = hazard.intensity(order_indx,:);
 hazard.name      = hazard.name(order_indx);
 hazard.frequency = 1./[2 5 10 25 50 100];
@@ -103,12 +104,12 @@ hazard.filename  = '';
 hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
 
 
-% shift in lat/lon
-shift_lon = -0.002/10*6;
-hazard.lon = hazard.lon +shift_lon;
-
-shift_lat = -0.002/4;
-hazard.lat = hazard.lat +shift_lat;
+% % shift in lat/lon
+% shift_lon = -0.002/10*6;
+% hazard.lon = hazard.lon +shift_lon;
+% 
+% shift_lat = -0.002/4;
+% hazard.lat = hazard.lat +shift_lat;
 
 % save flood hazard rio acelhuate
 % save(strrep(asci_file,'.asc','.mat'),'hazard')

@@ -109,16 +109,22 @@ event_grid(event_grid==NODATA_value) = 0;
 
 
 %specific shift in flood and DEM
-lon_shift=115;
-lat_shift=18;
+% lon_shift=115;
+% lat_shift=18;
+% 
+% xllcorner=xllcorner+lon_shift;
+% yllcorner=yllcorner+lat_shift;
+% 
+% % only for San Salvador: transformation of UTM to lat lon coordinates
+% [lon_min, lat_min] = utm2ll_salvador(xllcorner, yllcorner);
+% [lon_max, lat_max] = utm2ll_salvador(xllcorner+cellsize*ncols, yllcorner+cellsize*nrows);
 
-xllcorner=xllcorner+lon_shift;
-yllcorner=yllcorner+lat_shift;
-
-% only for San Salvador: transformation of UTM to lat lon coordinates
-[lon_min, lat_min] = utm2ll_salvador(xllcorner, yllcorner);
-[lon_max, lat_max] = utm2ll_salvador(xllcorner+cellsize*ncols, yllcorner+cellsize*nrows);
-
+% special case for San Salvador, we get the lat/lon corners directly from
+% Maxime and ignore the xllcorner, yllcorner in the asci-file
+lon_min = -89.251;
+lon_max = -89.163;
+lat_min =  13.702;
+lat_max =  13.671;
 
 % original conversion from UTM to lat lon
 % [lon_min, lat_min] = btm2ll(xllcorner, yllcorner);
