@@ -78,32 +78,46 @@ end
 %% read inunation hazard for San Salvador Rio Acelhuate and Rio Garrobo
 %(MARN data 1D and from Maxime/GFA put )
 
-% set directories
-foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation\20150723_rio_acelhuate_rio_garrobo_2D\';
-% asci_file = [foldername 'TR50A0.asc'];
-asci_file = [foldername 'flood_gar_2yr_10m.asc'];
+%present, future moderate and future extreme
 
-% load relevant shapes (adm2, rivers, polygon_LS, polygon_rio_acelhuate)
-load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
+foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation';
+data_name{1}='Salvador_hazard_FL_2015';
+data_name{2}='Salvador_hazard_FL_2015_moderate_cc';
+data_name{3}='Salvador_hazard_FL_2015_extreme_cc';
 
-% read hazard
-row_count = 6;
-utm_transformation = 'salvador';
-hazard = climada_asci2hazard(asci_file, row_count, utm_transformation);
+for i=1:3
 
-% set ordering and frequencies
-order_indx       = [4 6 2 3 5 1];
-hazard.intensity = hazard.intensity(order_indx,:);
-hazard.name      = hazard.name(order_indx);
-hazard.frequency = 1./[2 5 10 25 50 100];
-hazard.orig_years= 100;
-hazard.comment   = '1D modelled by MARN, 2D modelled by GFA';
-hazard.peril_ID  = 'FL';
-hazard.units     = 'm';
-hazard.filename  = '';
+    % set directories
+    if      i==1
+        asci_file = [foldername filesep '20150723_rio_acelhuate_rio_garrobo_2D' filesep 'flood_gar_2yr_10m.asc'];
+       
+    elseif  i==2
+       asci_file = [foldername filesep '201508_rio_acelhuate_rio_garrobo_2D_2040_moderate_cc' filesep '4%_2yr.txt'];
+ 
+    elseif  i==3
+        asci_file = [foldername filesep '201508_rio_acelhuate_rio_garrobo_2D_2040_extreme_cc' filesep '10%_2yr.txt'];
+    
+    end
 
-% cut out relevant area for rio acelhuate
-hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
+    % load relevant shapes (adm2, rivers, polygon_LS, polygon_rio_acelhuate)
+    load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
+
+    % read hazard
+    hazard = climada_asci2hazard(asci_file, 6, 'salvador');
+
+    % set ordering and frequencies
+    order_indx       = [4 6 2 3 5 1];
+    hazard.intensity = hazard.intensity(order_indx,:);
+    hazard.name      = hazard.name(order_indx);
+    hazard.frequency = 1./[2 5 10 25 50 100];
+    hazard.orig_years= 100;
+    hazard.comment   = '1D modelled by MARN, 2D modelled by GFA';
+    hazard.peril_ID  = 'FL';
+    hazard.units     = 'm';
+    hazard.filename  = '';
+
+    % cut out relevant area for rio acelhuate
+    hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
 
 
 % % shift in lat/lon
@@ -115,12 +129,12 @@ hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
 
 % save flood hazard rio acelhuate
 % save(strrep(asci_file,'.asc','.mat'),'hazard')
-save_name = [climada_global.project_dir filesep 'Salvador_hazard_FL_2015'];
+save_name = [climada_global.project_dir filesep data_name{i}];
 hazard.filename  = save_name;
 save(save_name,'hazard')
 fprintf('Save hazard in %s\n',save_name)
 
-
+end
 
 
 
