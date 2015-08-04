@@ -223,6 +223,7 @@ entity_future.assets.Cover = entity_future.assets.Value;
 entity_future.assets.filename = entity_future_file_xls;
 % climada_entity_save_xls(entity_future,entity_future_file_xls,1,1,1);
 
+
 %% event damage set
 climada_global.EDS_at_centroid = 1;
 
@@ -251,6 +252,45 @@ EDS_cc = climada_EDS_calc(entity_future,hazard_cc);
 climada_waterfall_graph(EDS,EDS_se,EDS_cc,'AED')
 print(gcf,'-dpng',[climada_global.data_dir filesep 'results' filesep 'waterfall_garrobo.png'])
 
+
+%..... EDS future
+% EDS moderate cc
+entity_source=[climada_global.project_dir filesep 'Salvador_entity_2015.mat'];
+load(entity_source);
+hazard_source=[climada_global.project_dir filesep 'Salvador_hazard_FL_2015_moderate_cc.mat'];
+load(hazard_source);
+
+EDS_mod = climada_EDS_calc(entity,hazard,'',1);
+
+% EDS extreme cc
+entity_source=[climada_global.project_dir filesep 'Salvador_entity_2015.mat'];
+load(entity_source);
+hazard_source=[climada_global.project_dir filesep 'Salvador_hazard_FL_2015_extreme_cc.mat'];
+load(hazard_source);
+
+EDS_extr = climada_EDS_calc(entity,hazard,'',1);
+
+
+%plot the damages
+
+fieldname_list = {'assets' 'damage' 'damage_relative'};
+% peril_list = 'FL';
+ peril_ID = 'FL';
+unit_list = {'USD' 'people'};
+category_list = unique(entity.assets.Category(salvador_assets_select(entity,peril_ID)));
+print_figure = 0;
+
+for f_i = 1:numel(fieldname_list)
+    for c_i = 1:numel(category_list)
+        salvador_map_plot(entity,EDS_extr,fieldname_list{f_i},peril_ID,'',category_list(c_i),print_figure);
+        name=sprintf('Damage_cat_%d_%d_extr_cc',f_i,c_i);
+        print(gcf,name,'-dpng')
+    end %c_i
+end
+
+%close all figure
+%close all
+%.....
 %% measures
 % measures impact in present scenario
 measures_impact = climada_measures_impact(entity,hazard,'no');
