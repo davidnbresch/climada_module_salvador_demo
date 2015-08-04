@@ -29,6 +29,7 @@ function fig = salvador_map_plot(entity,EDS,fieldname_to_plot,peril_criterum,uni
 % MODIFICATION HISTORY:
 % Lea Mueller, muellele@gmail.com, 20150731, init
 % Lea Mueller, muellele@gmail.com, 20150801, return if invalid selection
+% Lea Mueller, muellele@gmail.com, 20150804, differentiate axis_limits for TC and FL
 %-
 
 global climada_global
@@ -83,8 +84,8 @@ if iscell(peril_criterum); peril_criterum = peril_criterum{1}; end
 cbar_string  = sprintf('%s (%s)', regexprep(strrep(fieldname_to_plot,'_',' '),'(\<[a-z])','${upper($1)}'), unit_criterium);
 
 % set pdf filename
-pdf_filename = sprintf('Salvador_%s_%s_cat_%d_%s_%d.pdf',peril_criterum,fieldname_to_plot,...
-                                                         category_criterium,unit_criterium,timehorizon);  
+pdf_filename = sprintf('Salvador_%s_%s_cat_%d_%s_%d_%s.pdf',peril_criterum,fieldname_to_plot,...
+                                                         category_criterium,unit_criterium,timehorizon, datestr(now,'YYYYmmdd'));  
 
 
 %% use million figures for unit USD
@@ -112,8 +113,27 @@ if strcmp(fieldname_to_plot,'damage') | strcmp(fieldname_to_plot,'damage_relativ
                     sprintf('Total damage: %3.2f %s %s (%1.2f%%)', ...
                         sum(EDS.ED_at_centroid(is_selected))*nice_figure_factor, nice_figure_factor_str, unit_criterium, ...
                         sum(EDS.ED_at_centroid(is_selected))/sum(entity.assets.Value(is_selected))*100) };
+    if strcmp(fieldname_to_plot,'damage_relative')            
+        cbar_string  = sprintf('%s (%s)', regexprep(strrep(fieldname_to_plot,'_',' '),'(\<[a-z])','${upper($1)}'), '%');
+    end
 end
 
+if strcmp(peril_criterum,'TC')
+    AX_LIMITS  = [-89.32 -89.02 13.62 13.85];
+    MARKERSIZE = 2;
+    right_corner = 1;
+    
+elseif strcmp(peril_criterum,'FL')
+    AX_LIMITS  = [-89.25 -89.16 13.66 13.71];
+    MARKERSIZE = 1;
+    right_corner = 2;
+    
+else
+    AX_LIMITS  = [-89.32 -89.02 13.62 13.85];
+    MARKERSIZE = 2;
+    right_corner = 1;
+    
+end
 
 %% set plotting parameters depending on fieldname to plot
 switch fieldname_to_plot
@@ -141,11 +161,9 @@ end
 
 
 %% set figure parameters
-AX_LIMITS = [-89.25 -89.16 13.66 13.71];
 FONTSIZE  = 13;
 FIGURE_HEIGHT = 0.38;
 FIGURE_WIDTH  = 0.85;
-MARKERSIZE    = 1;
 
 
 %% create figure
@@ -154,13 +172,14 @@ fig = climada_figuresize(FIGURE_HEIGHT,FIGURE_WIDTH);
 cbar = plotclr(entity.assets.lon(is_selected), entity.assets.lat(is_selected), value(is_selected),...
        's',MARKERSIZE,1,miv,mav,cmap);
 if exist(shp_file,'file')
-    shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    %shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
 end
 climada_figure_axis_limits_equal_for_lat_lon(AX_LIMITS)
 set(get(cbar,'ylabel'),'String', cbar_string,'fontsize',13);
 title(titlestr,'fontsize',FONTSIZE)
 box on
-climada_figure_scale_add('',4,2)
+climada_figure_scale_add('',4,right_corner)
 
 if print_figure
     print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
