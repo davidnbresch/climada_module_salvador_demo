@@ -11,6 +11,8 @@ load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm
 % salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
 % load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
 
+% Lea Mueller, 20150815, update shp-file shift, based on finalized FL hazard and FL entity,
+
 
 
 
@@ -30,6 +32,8 @@ shape_roads  = climada_shaperead([consultant_shp_dir filesep 'el_salvador_highwa
 % load([climada_global.data_dir filesep 'entities' filesep 'SLV_adm' filesep 'SLV_adm2.mat'])
 % salvador_data_dir          = [climada_global.data_dir filesep 'results' filesep 'SanSalvador' filesep 'LS' filesep];
 % salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
+
+
 
 
 
@@ -81,9 +85,11 @@ for s_i = 1:numel(shapes)
 end
 
 
-%% apply shift in lon/lat for rios
-shift_lon = 0.02/4;
-shift_lat = -0.02/6;
+%% apply shift in lon/lat for rivers
+% shift_lon = 0.02/4;
+% shift_lat = -0.02/6;
+shift_lon = -0.002/6;
+shift_lat = -0.005/5;
 for s_i = 1:numel(shape_rivers)
     % rivers
     shape_rivers(s_i).X = shape_rivers(s_i).X_ori + shift_lon;
