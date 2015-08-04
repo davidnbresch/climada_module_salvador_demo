@@ -87,7 +87,9 @@ asci_file = [foldername 'flood_gar_2yr_10m.asc'];
 load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
 
 % read hazard
-hazard = climada_asci2hazard_sansal(asci_file);
+row_count = 6;
+utm_transformation = 'salvador';
+hazard = climada_asci2hazard(asci_file, row_count, utm_transformation);
 
 % set ordering and frequencies
 order_indx       = [4 6 2 3 5 1];
