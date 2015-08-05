@@ -11,8 +11,8 @@ load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm
 % salvador_module_system_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
 % load([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
 
-% Lea Mueller, 20150815, update shp-file shift, based on finalized FL hazard and FL entity,
-
+% Lea Mueller, 20150815, update shp-file shift, based on finalized FL hazard and FL entity
+% Lea Mueller, 20150815, enlarge polygon_rio_acelhuate, as it was too small before
 
 
 

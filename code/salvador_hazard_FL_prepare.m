@@ -82,8 +82,8 @@ end
 
 foldername = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\hazards\inundation';
 data_name{1}='Salvador_hazard_FL_2015';
-data_name{2}='Salvador_hazard_FL_2015_moderate_cc';
-data_name{3}='Salvador_hazard_FL_2015_extreme_cc';
+data_name{2}='Salvador_hazard_FL_2040_moderate_cc';
+data_name{3}='Salvador_hazard_FL_2040_extreme_cc';
 
 for i=1:3
 
@@ -119,20 +119,11 @@ for i=1:3
     % cut out relevant area for rio acelhuate
     hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
 
-
-% % shift in lat/lon
-% shift_lon = -0.002/10*6;
-% hazard.lon = hazard.lon +shift_lon;
-% 
-% shift_lat = -0.002/4;
-% hazard.lat = hazard.lat +shift_lat;
-
-% save flood hazard rio acelhuate
-% save(strrep(asci_file,'.asc','.mat'),'hazard')
-save_name = [climada_global.project_dir filesep data_name{i}];
-hazard.filename  = save_name;
-save(save_name,'hazard')
-fprintf('Save hazard in %s\n',save_name)
+    % save flood hazard rio acelhuate
+    save_name = [climada_global.project_dir filesep data_name{i}];
+    hazard.filename  = save_name;
+    save(save_name,'hazard')
+    fprintf('Save hazard in %s\n',save_name)
 
 end
 
