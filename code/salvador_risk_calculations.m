@@ -1,25 +1,25 @@
 
 
 %% salvador risk calculations
+global climada_global
+climada_global.project_dir = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\salvador_climada_data';
 
-% peril_ID = 'FL';
-peril_ID = 'TC';
+peril_ID = 'FL';
+% peril_ID = 'TC';
+cc_scenario = 'no';
+% cc_scenario = 'moderate';
+% cc_scenario = 'extreme';
+timehorizon = 2015;
 
 force_re_encode = 1;
-annotation_name = peril_ID;
-switch peril_ID
-    case 'FL'
-        % load FL hazard
-        load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
-        
-        % load EDS FL
-        %load([climada_global.project_dir filesep 'Salvador_EDS_FL_2015'])
+annotation_name = sprintf('%s, %s climate change',peril_ID,cc_scenario);
+hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
 
-        
-    case 'TC'
-        % load TC hazard
-        load([climada_global.project_dir filesep 'Salvador_hazard_TC_prob'])   
-end
+% load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
+% load([climada_global.project_dir filesep 'Salvador_hazard_FL_2040_moderate_cc'])
+% load([climada_global.project_dir filesep 'Salvador_hazard_FL_2040_extreme_cc'])
+% % load TC hazard
+% load([climada_global.project_dir filesep 'Salvador_hazard_TC_prob'])   
 
 
 % load entity 2015
@@ -62,11 +62,12 @@ EDS = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 
 %% create ED report
-timehorizon = 2015;
+% timehorizon = 2015;
 % peril_ID    = 'FL';
-ED_filename = sprintf('ED_%s_%d_%s.xls', peril_ID, timehorizon,datestr(now,'YYYYmmdd'));
-climada_EDS_ED_at_centroid_report_xls(EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename])
-
+ED_filename = sprintf('ED_%s_%d_cc_%s_%s.xls', peril_ID, timehorizon,cc,datestr(now,'YYYYmmdd'));
+climada_EDS_ED_at_centroid_report_xls(EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
+output_report = salvador_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
+% output_report = salvador_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
 
 
 
@@ -82,6 +83,7 @@ for f_i = 1:numel(fieldname_list)
         salvador_map_plot(entity,EDS,fieldname_list{f_i},peril_ID,'',category_list(c_i),print_figure);
     end %c_i
 end %f_i
+close all
 
 % fieldname_to_plot = 'assets';
 % peril_criterium = 'FL';
@@ -96,7 +98,7 @@ is_selected = salvador_assets_select(entity,'FL','USD');
 
 % shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
 % shape_plotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
-cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end,:),...
+cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end-1,:),...
     's',0.5,1,0,6,climada_colormap('FL'));
 % plot(hazard.lon(logical(hazard.intensity(end,:))), hazard.lat(logical(hazard.intensity(end,:))),...
 %     's','markersize',0.5,'color','b');
@@ -111,9 +113,10 @@ climada_figure_axis_limits_equal_for_lat_lon(ax_limits)
 box on
 climada_figure_scale_add('',4,1)
 % set(get(cbar,'ylabel'),'String', '100 year flood (m)','fontsize',13);
-title('Assets (Flood, 2015) and 100 year flood','fontsize',13)
+% title('Assets (Flood, 2015) and 100 year flood','fontsize',13)
+title('Assets (Flood, 2015) and 50 year flood','fontsize',13)
 % print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_FL_2015_hazard_100_year.pdf'])
-
+print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_FL_2015_hazard_50_year.pdf'])
 
 
 
