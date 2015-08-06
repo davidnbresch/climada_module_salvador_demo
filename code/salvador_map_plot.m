@@ -172,7 +172,8 @@ fig = climada_figuresize(FIGURE_HEIGHT,FIGURE_WIDTH);
 cbar = plotclr(entity.assets.lon(is_selected), entity.assets.lat(is_selected), value(is_selected),...
        's',MARKERSIZE,1,miv,mav,cmap);
 if exist(shp_file,'file')
-    shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    shape_plotter(shape_rivers,'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    %shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
     %shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
 end
 climada_figure_axis_limits_equal_for_lat_lon(AX_LIMITS)
