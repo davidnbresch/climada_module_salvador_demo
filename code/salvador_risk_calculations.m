@@ -27,8 +27,10 @@ load([climada_global.project_dir filesep 'Salvador_entity_2015'])
 
 
 % set consultant_data_entity_dir
-consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
-consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150731'];
+consultant_data_entity_dir =        [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
+consultant_data_damage_fun_dir =    [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150731'];
+consultant_data_measures_dir=       [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures'];
+
 
 % load shp files
 load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
@@ -154,7 +156,68 @@ print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_
 
 
 
+
+%% measures
+
+%set the directories again
+%present entity
+consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
+entity_file_xls = [consultant_data_entity_dir filesep 'entity_AMSS_NEW.xls'];
+
+%future entity
+%entity_file_xls = [consultant_data_entity_dir filesep 'xxx'];
+
+
+%FLOOD FL
+%present hazard
+haz_file='Salvador_hazard_FL_2015.mat';
+
+%future hazard
+haz_file='Salvador_hazard_FL_2040_moderate_cc.mat';
+haz_file='Salvador_hazard_FL_2040_extreme_cc.mat';
+
+%Tropical storm TC
+%present hazard
+haz_file='Salvador_hazard_TC_2015';
+
+%future hazard
+
+
+%LANDSLIDE LS
+%present hazard
+
+
+%future hazard 
+
+%measures file
+consultant_data_measures_dir=       [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures'];
+measures_file_xls= [consultant_data_measures_dir filesep 'Medidas_Climada_inundation_DRAFT.xlsx'];
+
+%load hazard
+hazard_file= [climada_global.project_dir filesep haz_file];
+load(hazard_file);
+
+%create entity, combine with seperate measures
+entity = climada_entity_read(entity_file_xls,hazard);
+entity.measures=climada_measures_read(measures_file_xls);
+
+%encode
+%entity = climada_assets_encode(entity,hazard);
+
+%present impact
+measures_impact = climada_measures_impact(entity,hazard,'no');
+
+% measures impact future scenario (climate change + economic growth)
+measures_impact_future = climada_measures_impact(entity_future,hazard_cc,measures_impact);
+
+
+
 %%
+
+
+
+
+
 
 
 
@@ -296,6 +359,11 @@ end
 %.....
 %% measures
 % measures impact in present scenario
+
+%
+
+
+
 measures_impact = climada_measures_impact(entity,hazard,'no');
 
 % measures impact future scenario (climate change + economic growth)
