@@ -1,8 +1,6 @@
 
 
 %% salvador risk calculations
-global climada_global
-climada_global.project_dir = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\salvador_climada_data';
 
 peril_ID = 'FL';
 % peril_ID = 'TC';
@@ -15,11 +13,12 @@ force_re_encode = 1;
 annotation_name = sprintf('%s, %s climate change',peril_ID,cc_scenario);
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
 
-% load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
+% load(hazard_set_file)
+load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
 % load([climada_global.project_dir filesep 'Salvador_hazard_FL_2040_moderate_cc'])
 % load([climada_global.project_dir filesep 'Salvador_hazard_FL_2040_extreme_cc'])
 % % load TC hazard
-% load([climada_global.project_dir filesep 'Salvador_hazard_TC_prob'])   
+% load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
 
 
 % load entity 2015
@@ -28,7 +27,10 @@ load([climada_global.project_dir filesep 'Salvador_entity_2015'])
 
 % set consultant_data_entity_dir
 consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
-consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150731'];
+consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150806'];
+% consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150811_TC'];
+% consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150818' filesep 'Medidas_Climada_inundation_DRAFT.xlsx'];
+consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures'];
 
 % load shp files
 load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
@@ -45,9 +47,16 @@ entity = climada_entity_read(entity_file_xls,hazard);
 entity.assets.reference_year = 2015;
 entity.assets = rmfield(entity.assets,'VALNaN');
 entity.damagefunctions = rmfield(entity.damagefunctions,'VALNaN');
-% entity.damagefunctions = climada_damagefunctions_read([consultant_data_damage_fun_dir filesep 'damage_functions_El_Salvador_Mod_30072015.xlsx']);
-% climada_damagefunctions_plot(entity)
-% entity = climada_assets_encode(entity,hazard);
+entity.damagefunctions = climada_damagefunctions_read([consultant_data_damage_fun_dir filesep 'DamageFunction_FL_2ndRUN.xlsx']);
+% entity.damagefunctions = climada_damagefunctions_read([consultant_data_damage_fun_dir filesep 'entity_AMSS_WIND-5ms.xlsx']);
+% entity.damagefunctions = climada_damagefunctions_read([consultant_data_damage_fun_dir filesep 'entity_AMSS_WIND-10ms.xlsx']);
+% % climada_damagefunctions_plot(entity)
+% % entity = climada_assets_encode(entity,hazard);
+
+entity = climada_assets_encode(entity,hazard);
+entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas_Climada_inundation_DRAFT.xlsx']);
+entity.measures.cost = entity.measures.cost(1:3);
+
 entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015.mat'];
 entity.assets.filename = entity_filename;
 save(entity_filename,'entity')
@@ -58,13 +67,14 @@ save(entity_filename,'entity')
 
 EDS = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 % save([climada_global.project_dir filesep 'Salvador_EDS_FL_2015_new_damagefun'],'EDS')
+% EDS(2) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 
 
 %% create ED report
 % timehorizon = 2015;
 % peril_ID    = 'FL';
-ED_filename = sprintf('ED_%s_%d_cc_%s_%s.xls', peril_ID, timehorizon,cc,datestr(now,'YYYYmmdd'));
+ED_filename = sprintf('ED_%s_%d_cc_%s_%s.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
 climada_EDS_ED_at_centroid_report_xls(EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
 output_report = salvador_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
 % output_report = salvador_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
@@ -154,13 +164,16 @@ print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_
 
 
 
-%%
-
-
-
-
-
-
+%% measures
+entity.measures.hazard_intensity_impact = -entity.measures.hazard_intensity_impact;
+measures_impact = climada_measures_impact(entity,hazard,'no');
+ED_filename = sprintf('ED_%s_%d_cc_%s_measures.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
+n_measures = numel(measures_impact.measures.cost);
+for m_i = 1:n_measures+1
+    sheet_name = sprintf('ED_per_category_measure_%d_%s',m_i);
+    output_report = salvador_EDS_ED_per_category_report(entity, measures_impact.EDS(m_i), [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],sheet_name);
+end
+climada_EDS_ED_at_centroid_report_xls(measures_impact.EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
 
 
 
