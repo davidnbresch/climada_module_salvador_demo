@@ -101,6 +101,9 @@ else
 	F1 = datum(2);
 end
 
+% SHIFT
+x = x+15;   y = y-105;
+
 % constants
 D0 = 180/pi;	% conversion rad to deg
 maxiter = 100;	% maximum iteration for latitude computation
@@ -146,6 +149,8 @@ else
 	lat = p*D0;
 	lon = l*D0;
 end
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
