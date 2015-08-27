@@ -1,4 +1,4 @@
-function hazard = climada_hazard_encode_distance(hazard,entity,cutoff)
+function hazard = climada_hazard_encode_distance(hazard,entityORassetsORcentroids,cutoff)
 % climada
 % MODULE:
 %   salvador_demo
@@ -30,26 +30,49 @@ function hazard = climada_hazard_encode_distance(hazard,entity,cutoff)
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20150708, initial
 % Lea Mueller, muellele@gmail.com, 20150713, intensity as 1-1/cutoff*distance_m instead of distance
+% Gilles Stassen, gillesstassen@hotmail.com, 20150803, faster (~30x) alternative to knnsearch; argin entity -> entityORassetsORcentroids
+% Gilles Stassen, 20150805, elevation cutoff. Entity points higher in elevation than land slide excluded
+%-
 
 % init global variables
 global climada_global
 if ~climada_init_vars,return;end % init/import global variables
 
 % poor man's version to check arguments
-if ~exist('hazard',     'var'), hazard = []; end
-if ~exist('entity',     'var'), entity = []; end
-if ~exist('cutoff',     'var'), cutoff = []; end
+if ~exist('hazard',                     'var'), hazard                      = []; end
+if ~exist('entityORassetsORcentroids',  'var'), entityORassetsORcentroids   = []; end
+if ~exist('cutoff',                     'var'), cutoff                      = []; end
 
-if isempty(hazard),hazard = climada_hazard_load; end % prompt for and load hazard, if empty
-if isempty(entity),entity = climada_entity_load; end % prompt for and load entity, if empty
+if isempty(hazard)
+    hazard = climada_hazard_load; 
+    if isempty(hazard),return; end
+end % prompt for and load hazard, if empty
+
+if isempty(entityORassetsORcentroids),
+    entity = climada_entity_load;
+    if isempty(entity),return; end
+elseif isfield(entityORassetsORcentroids,'assets')      % input is entity
+    entity = entityORassetsORcentroids; 
+elseif isfield(entityORassetsORcentroids,'Value')       % input is assets
+    entity.assets = entityORassetsORcentroids;
+elseif isfield(entityORassetsORcentroids,'centroid_ID') % input is centroids
+    entity.assets.lon = entityORassetsORcentroids.lon;
+    entity.assets.lat = entityORassetsORcentroids.lat;
+    entity.assets.elevation_m = entityORassetsORcentroids.elevation_m;
+else
+    cprintf([1 0 0],'ERROR: invalid input\n')
+    return
+end
+clear entityORassetsORcentroids % prompt for and load entity, if empty
+
 % set cutoff value, default is 1000m, all values exceeding this treshold will be set to 0
 if isempty(cutoff), cutoff = 1000; end
 
-if isempty(hazard),return; end
-if isempty(entity),return; end
 hazard = climada_hazard2octave(hazard); % Octave compatibility for -v7.3 mat-files
 
-    
+
+
+
 %get hazard structure
 hazard_distance = hazard;
 
@@ -59,8 +82,8 @@ hazard_distance.lat        = entity.assets.lat;
 hazard_distance.intensity  = sparse(hazard.event_count, numel(entity.assets.lon));
 hazard_distance.distance_m = sparse(hazard.event_count, numel(entity.assets.lon));
 hazard_distance.cutoff_m   = cutoff;
-hazard_distance.comment    = 'intensity, as tranformed distance, y = 1-1/cutoff*distance_m';
-hazard_distance.units      = '-';
+hazard_distance.comment    = 'intensity, as tranformed distance, y = 1-(1/cutoff)*distance_m';
+hazard_distance.units      = 'm/m';
 hazard_distance.centroid_ID = 1:length(entity.assets.lon);
 hazard_distance.peril_ID   = 'LS';
 
@@ -79,9 +102,18 @@ intensity_full = full(hazard.intensity);
 
 % % find nonzero elements
 % [event_indx,location_indx,s] = find(hazard.intensity);
-   
+ 
+stats_toolbox = 0;
+try
+    knnsearch(rand(1,2),rand(1,2)); % just to test
+catch
+    cprintf([ 1 0.5 0],'WARNING: no access to statistics toolbox, see line 141 in code for details on workaround\n')
+    stats_toolbox = 0;
+end
+
 % init watibar
-msgstr   = sprintf('Encoding hazard to hazard distance');
+t0       = clock;
+msgstr   = sprintf('encoding hazard to hazard distance');
 mod_step = 10;
 if climada_global.waitbar
     fprintf('%s (updating waitbar every 100th event)\n',msgstr);
@@ -104,13 +136,29 @@ for i=1:length(hazard_distance.event_ID)
         % original lon/lat dimension
         hazard_lon_lat = [reshape(hazard.lon(nonzero_indx),numel(nonzero_indx),1) reshape(hazard.lat(nonzero_indx),numel(nonzero_indx),1)];
         entity_lon_lat = [reshape(entity.assets.lon,numel(entity.assets.lon),1) reshape(entity.assets.lat,numel(entity.assets.lat),1)];
+       
+        elev_check = 0;
+        if isfield(entity.assets,'elevation_m') && isfield(hazard,'elevation_m')
+            elev_check  = 1;
+           	hazard_elev = [reshape(hazard.elevation_m(nonzero_indx),numel(nonzero_indx),1)];
+            entity_elev = [reshape(entity.assets.elevation_m,numel(entity.assets.elevation_m),1)];
+        end
         % find closest hazard centroid and calculate distance in meters to it
         %[indx_, distance_m] = knnsearch(hazard_lon_lat,entity_lon_lat,'Distance',@climada_geo_distance_2); 
-        [~, distance_m] = knnsearch(hazard_lon_lat,entity_lon_lat,'Distance',@climada_geo_distance_2); 
-              
+        distance_m = [];
+        if stats_toolbox 
+            [~, distance_m] = knnsearch(hazard_lon_lat,entity_lon_lat,'Distance',@climada_geo_distance_2); 
+        else
+            % this seems to be much faster (~30x !!!)
+            for pt_i = 1:length(hazard_lon_lat)
+                distance_m(:,pt_i) = climada_geo_distance_2(hazard_lon_lat(pt_i,:),entity_lon_lat);
+                if elev_check,  distance_m(entity_elev>hazard_elev(pt_i),pt_i) = inf;   end
+            end
+            distance_m = min(distance_m,[],2);
+        end
         %set minimum distance to 1m
         distance_min = 1;
-        distance_m(distance_m<=distance_min) = 0;  
+        distance_m(distance_m<=distance_min) = 1;  
        
         % transform distance to an intensity in the form of (y = mx+b), which means 
         % increasing intensity with increasing damage,  
@@ -125,17 +173,22 @@ for i=1:length(hazard_distance.event_ID)
         % the progress management
         if mod(i,mod_step)==0
             mod_step = 100;
+            t_elapsed       = etime(clock,t0)/i;
+            n_remaining     = length(hazard_distance.event_ID)-i;
+            t_projected_sec = t_elapsed*n_remaining;
             if climada_global.waitbar
                 waitbar(i/length(hazard_distance.event_ID),h,msgstr); % update waitbar
             else
-                msgstr = sprintf('%i/%i hazard events',i,length(hazard_distance.event_ID));
+                if t_projected_sec<60
+                    msgstr = sprintf('encoding hazard, est. %3.0f sec left (%i/%i events)',t_projected_sec, i,length(hazard_distance.event_ID));
+                else
+                    msgstr = sprintf('encoding hazard, est. %3.1f min left (%i/%i events)',t_projected_sec/60, i,length(hazard_distance.event_ID));
+                end
                 fprintf(format_str,msgstr); % write progress to stdout
                 format_str = [repmat('\b',1,length(msgstr)) '%s']; % back to begin of line
             end
         end
-        
     end
-
 end
     
 
@@ -149,9 +202,10 @@ end
 hazard_distance.intensity = sparse(intensity_matrix);
 
 % calculate distance as well (in meters)
-hazard_distance.distance_m = sparse((1 - hazard_distance.intensity) .*cutoff);
+% hazard_distance.distance_m = sparse((1 - hazard_distance.intensity) .*cutoff);
+hazard_distance.distance_m = sparse(max(cutoff - hazard_distance.intensity,0));
 
-    
+
 % overwrite hazard with hazard_distance
 hazard = hazard_distance;
 
