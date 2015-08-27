@@ -3,8 +3,8 @@ function shapes = climada_shape_selector(fig,N,hold_shapes,min_dist_frac,smooth_
 % NAME:
 %   climada_shape_selector
 % PURPOSE:
-%   Select one or multiple areas in a figure by drawing one or multiple polygons. 
-%   Coordinates of polygons are saved in shapes.X and shapes.Y
+%   Select one or multiple areas in a figure by drawing one or multiple
+%   polygons. Coordinates of polygons are saved in shapes.X and shapes.Y
 % CALLING SEQUENCE:
 %   shapes = climada_shape_selector(fig,N,hold_shapes,min_dist_frac)
 % EXAMPLE:
@@ -13,7 +13,7 @@ function shapes = climada_shape_selector(fig,N,hold_shapes,min_dist_frac,smooth_
 % INPUTS:
 % OPTIONAL INPUT PARAMETERS:
 %   fig:    figure handle of figure in which you want to select shapes.
-%           if not given, existing figure with smallest handle number is
+%           if not given, existing figure with largest handle number is
 %           chosen. If no figures exist, climada_plot_world_borders is
 %           called
 %   N:      number of shapes you wish to draw
@@ -48,8 +48,8 @@ if isempty(figs) && isempty(fig)
     axis tight
     fig = findall(0,'Type','Figure');
 elseif isempty(fig)
-    % get existing figure with lowest number if no handle supplied as input
-    fig = min(figs);
+    % get existing figure with highest number if no handle supplied as input
+    fig = max(figs);
 elseif ~ismember(fig,figs)
     % if fig handle specified in argument does not exist
     cprintf([1 0 0], 'ERROR: figure %i does not exist\n',fig)
@@ -150,5 +150,3 @@ end
 
 % restore title
 title(title_str,'Fontsize',title_fsz,'FontAngle',title_ang)
-
-return
