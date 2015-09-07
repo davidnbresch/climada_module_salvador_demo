@@ -2,6 +2,7 @@
 
 %% salvador risk calculations
 
+% peril_ID = 'LS';
 peril_ID = 'FL';
 % peril_ID = 'TC';
 cc_scenario = 'no';
@@ -10,6 +11,8 @@ cc_scenario = 'no';
 timehorizon = 2015;
 
 force_re_encode = 1;
+
+%%
 annotation_name = sprintf('%s, %s climate change',peril_ID,cc_scenario);
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
 
@@ -28,13 +31,20 @@ load([climada_global.project_dir filesep 'Salvador_entity_2015'])
 
 
 % set consultant_data_entity_dir
-consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
-consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150806'];
-% consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150811_TC'];
-% consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150818'];
-consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150828'];
-
-
+switch peril_ID
+    case 'FL'
+        consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150721'];
+        consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150806'];
+        % consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150811_TC'];
+        % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150818'];
+        % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150828'];
+        % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150901'];
+        consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150903'];
+        entity_file_xls = [consultant_data_entity_dir filesep 'entity_AMSS_NEW.xls'];
+    case 'LS'
+        consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150806_LS'];
+        entity_file_xls = [consultant_data_entity_dir filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
+end
 % load shp files
 load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
 
@@ -45,7 +55,6 @@ load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm
 
 %% read entity
 % entity today
-entity_file_xls = [consultant_data_entity_dir filesep 'entity_AMSS_NEW.xls'];
 entity = climada_entity_read(entity_file_xls,hazard);
 entity.assets.reference_year = 2015;
 entity.assets = rmfield(entity.assets,'VALNaN');
@@ -59,21 +68,42 @@ entity.damagefunctions = climada_damagefunctions_read([consultant_data_damage_fu
 entity = climada_assets_encode(entity,hazard);
 % entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas_Climada_inundation_DRAFT.xlsx']);
 % entity.measures.cost = entity.measures.cost(1:3);
-entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas parametrizadas.xlsx']);
-% overwrite measures hazard high frequency cutoff
+% entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas parametrizadas.xlsx']);
+% entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas parametrizadas_2m.xlsx']);
+% entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas parametrizadas_4m.xlsx']);
+entity.measures = climada_measures_read([consultant_data_measures_dir filesep 'Medidas parametrizadas_A+B_MS.xlsx']);
+% overwrite measures hazard intensity impact, high frequency cutoff
+entity.measures.hazard_intensity_impact_b = zeros(size(entity.measures.hazard_intensity_impact_b));
 entity.measures.hazard_high_frequency_cutoff = zeros(size(entity.measures.hazard_high_frequency_cutoff));
 
-entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015.mat'];
+entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
 entity.assets.filename = entity_filename;
 save(entity_filename,'entity')
 
+% future entity, 2040
+load([climada_global.project_dir filesep 'Salvador_entity_2040.mat'])
+% % is_selected = climada_assets_select(entity,hazard.peril_ID,'USD');
+% is_selected = climada_assets_select(entity,hazard.peril_ID,'people');
+% sum(entity.assets.Value(is_selected))
+% load([climada_global.project_dir filesep 'Salvador_entity_2015.mat'])
+
 
 %% measures
-% entity.measures.hazard_intensity_impact = -entity.measures.hazard_intensity_impact;
-measures_impact(u_i) = climada_measures_impact(entity,hazard,'no');
-ED_filename = sprintf('ED_%s_%d_%s_cc_measures_%s.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
-climada_EDS_ED_at_centroid_report_xls(measures_impact.EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
-output_report = salvador_EDS_ED_per_category_report(entity, measures_impact.EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category_2');
+% entity.measures.hazard_intensity_impact_b = -entity.measures.hazard_intensity_impact;
+u_i = 1;
+sanity_check = 1;
+measures_impact(u_i) = climada_measures_impact(entity,hazard,'no','','',sanity_check);
+measures_impact_filename = [climada_global.project_dir filesep sprintf('measures_impact_%s_1_3m.mat',datestr(now,'YYYYmmdd')) ];
+% save(measures_impact_filename,'measures_impact')
+ED_filename = sprintf('ED_%s_%d_%s_cc_measures_%s_1_3m.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
+climada_EDS_ED_at_centroid_report_xls(measures_impact(u_i).EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
+output_report = salvador_EDS_ED_per_category_report(entity, measures_impact(u_i).EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category',1,1);
+
+
+% % hazard frequency
+% [sorted_damage,exceedence_freq,cumulative_probability,sorted_freq,event_index_out]=...
+%     climada_damage_exceedence([1 2 3 4 5 6],hazard.frequency,[1 2 3 4 5 6]);
+
 
 
 
@@ -82,27 +112,37 @@ unit_criterium = '';
 category_criterium = '';
 [~,~,unit_list,category_criterium]...
              = climada_assets_select(entity,hazard.peril_ID,unit_criterium,category_criterium);
-entity.measures.color_RGB = jet(numel(entity.measures.name));
+% entity.measures.color_RGB = jet(numel(entity.measures.name));
 
 for u_i = 1:numel(unit_list)
     
     climada_global.Value_unit = unit_list{u_i};
-    [is_selected,peril_criterum,unit_criterium,category_criterium] =...
-           climada_assets_select(entity,hazard.peril_ID,unit_list{u_i},'');
-    entity_selected = entity;
-    entity_selected.assets.Value(~is_selected) = 0;
+%     [is_selected,peril_criterum,unit_criterium,category_criterium] =...
+%            climada_assets_select(entity,hazard.peril_ID,unit_list{u_i},'');
+%     entity_selected = entity;
+%     entity_selected.assets.Value(~is_selected) = 0;
+%     
+%     if strcmp(unit_list{u_i},'people')% do not discount people
+%         entity_selected.discount.discount_rate = zeros(size(entity_selected.discount.discount_rate));
+%     end
+%     measures_impact_both(u_i) = climada_measures_impact(entity_selected,hazard,'no');
+
     
-    if strcmp(unit_list{u_i},'people')% do not discount people
-        entity_selected.discount.discount_rate = zeros(size(entity_selected.discount.discount_rate));
-    end
-    measures_impact(u_i) = climada_measures_impact(entity_selected,hazard,'no');
+    measures_impact_both(u_i) = climada_measures_impact_discount(entity,measures_impact,'no','unit',unit_list{u_i});
+    measures_impact_both(u_i).Value_unit = unit_list{u_i};
     
+%     xls_file = [climada_global.project_dir filesep 'REPORTS' filesep ED_filename];
+%     sheet_name = sprintf('Benefit_costs_%s',unit_list{u_i});
+%     output_report = climada_measures_impact_report(measures_impact_both(u_i),xls_file,sheet_name);
+    
+
     fig = climada_figuresize(0.5,1.2);
-    climada_adaptation_cost_curve(measures_impact(u_i),'',30,10)
-    pdf_filename = sprintf('Adaptation_cost_curve_%s_2015_%s.pdf',measures_impact(u_i).peril_ID,measures_impact(u_i).Value_unit);
+    climada_adaptation_cost_curve(measures_impact_both(u_i),'',30,10)
+    pdf_filename = sprintf('Adaptation_cost_curve_%s_2015_%s_1_3m.pdf',measures_impact_both(u_i).peril_ID,measures_impact_both(u_i).Value_unit);
     print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
 
 end
+save(measures_impact_filename,'measures_impact_both')
 
 
 %% risk analysis, waterfall graph
@@ -114,9 +154,19 @@ EDS(1) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 % 2040, economic growth
 % entity_future = entity;
+% USD
 growth_rate = 0.04;
 growth_factor = (1+growth_rate)^(2040-2015);
-entity.assets.Value = entity.assets.Value * growth_factor;
+[is_selected,peril_criterum,unit_criterium,category_criterium] = ...
+       climada_assets_select(entity,hazard.peril_ID,'USD','');
+entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor;
+% people
+growth_rate = 0.014;
+growth_factor = (1+growth_rate)^(2040-2015);
+[is_selected,peril_criterum,unit_criterium,category_criterium] = ...
+       climada_assets_select(entity,hazard.peril_ID,'people','');
+entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor;
+
 entity.assets.reference_year = 2040;
 entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2040.mat'];
 entity.assets.filename = entity_filename;
@@ -142,11 +192,13 @@ hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, 
 hazard = [];
 load([climada_global.project_dir filesep hazard_set_file])
 annotation_name = sprintf('%s climate change',cc_scenario);
-EDS(4) = climada_EDS_calc(entity_future,hazard,annotation_name,force_re_encode);
+EDS(4) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 % create waterfall AED for USD
 % unit_criterium = 'USD';
 unit_criterium = 'people';
+% cc_scenario = 'moderate';
+cc_scenario = 'extreme';
 [is_selected,peril_criterum,unit_criterium,category_criterium] =...
             climada_assets_select(entity,EDS(1).peril_ID,unit_criterium);        
 for EDS_i = 1:numel(EDS)
@@ -157,16 +209,22 @@ end
 EDS(1).hazard.comment = 'FL, 2015';
 EDS(2).hazard.comment = 'FL, 2015';
 EDS(3).hazard.comment = 'FL, 2040, moderate cc';
+EDS(4).hazard.comment = 'FL, 2040, extreme cc';
 EDS(1).reference_year = 2015;
 EDS(2).reference_year = 2015;
-fig = climada_waterfall_graph(EDS(1),EDS(2),EDS(3),'AED');
-% pdf_filename = 'Waterfall_FL_moderate_cc.pdf';
-pdf_filename = 'Waterfall_FL_moderate_cc_people.pdf';
-% pdf_filename = 'Waterfall_FL_extreme_cc_people.pdf';
+switch cc_scenario
+    case 'moderate'
+        fig = climada_waterfall_graph(EDS(1),EDS(2),EDS(3),'AED');
+    case 'extreme'
+        fig = climada_waterfall_graph(EDS(1),EDS(2),EDS(4),'AED');
+end
+pdf_filename = sprintf('Waterfall_FL_%s_cc_%s.pdf',cc_scenario,unit_criterium{1});
 print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
 
 benefit_flag = 0;
-output_report = salvador_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep 'ED_FL_2015_2040_20150828'],'ED_per_category',benefit_flag);
+EDS(5) = EDS(1);
+xls_file = [climada_global.project_dir filesep 'REPORTS' filesep 'ED_FL_2015_2040_' datestr(now,'YYYYmmdd')];
+output_report = salvador_EDS_ED_per_category_report(entity, EDS, xls_file,'ED_per_category',benefit_flag);
 
 
 
