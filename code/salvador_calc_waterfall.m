@@ -38,6 +38,11 @@ if isempty(results_dir), results_dir =[climada_global.project_dir filesep sprint
 if isempty(growth_rate_eco), growth_rate_eco = 0.04; end
 if isempty(growth_rate_people), growth_rate_people = 0.2/100; end
 
+[pathstr, name, ext] = fileparts(results_dir);
+if isempty(pathstr)
+    pathstr = climada_global.project_dir;
+    results_dir = fullfile(pathstr, name);
+end
 
 % create results dir
 if ~exist(results_dir,'dir')
@@ -76,7 +81,10 @@ switch peril_ID
             assets_file = ['20150721' filesep 'entity_AMSS_NEW.xls'];
         end
         if isempty(damfun_file)
-            damfun_file = ['20150806' filesep 'DamageFunction_FL_2ndRUN.xlsx'];
+            damfun_file = ['20150910' filesep 'DamageFunction_150910.xlsx'];
+            % damfun_file = ['20150910' filesep 'DamageFunction_150910_other_way.xlsx'];
+            % damfun_file = ['20150910' filesep 'DamageFunction_150910.xlsx'];
+            % damfun_file = ['20150806' filesep 'DamageFunction_FL_2ndRUN.xlsx'];
             % consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150811_TC'];
         end
         %if isempty(measures_file)

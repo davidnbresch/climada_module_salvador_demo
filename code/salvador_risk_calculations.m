@@ -1,5 +1,5 @@
 
-nametag = 'punto_A';
+nametag = 'p_2nd_run';
 assets_file= '';
 damfun_file = '';
 measures_file = ['20150909' filesep 'medidas selection'];
@@ -7,6 +7,11 @@ results_dir = '';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
 
 
+nametag = '';
+growth_rate_eco= '';
+growth_rate_people= '';
+results_dir = 'people_Maxime_2nd_run';
+salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people)
 
 
 %% salvador risk calculations
