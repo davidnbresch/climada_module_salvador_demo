@@ -32,6 +32,7 @@ function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file
 % Lea Mueller, muellele@gmail.com, 20150831, introduce benefit_flag to calculate benefit (difference AED with measure and AED without measure)
 % Lea Mueller, muellele@gmail.com, 20150831, rename climada_assets_select from salvador_assets_select
 % Lea Mueller, muellele@gmail.com, 20150831, enhance to cope with multiple EDS
+% Lea Mueller, muellele@gmail.com, 20150910, enhance to cope with Category names (cell) instead of numbers
 %-
 
 global climada_global
@@ -96,6 +97,11 @@ if ~isfield(entity.assets,'Category')
     return
 end
 
+category_cell= 0;
+if iscell(entity.assets.Category(1))
+    category_cell = 1;
+end
+    
 % get all categories for this peril ID
 % use EDS(1) to get all categories
 unit_criterium = '';
@@ -105,6 +111,13 @@ category_criterium = '';
 if ~any(is_selected)    
     fprintf('Invalid selection. \n'),return
 end  
+
+% check units
+unit_on = 1; %init
+if isempty(unit_list)
+    unit_list = {'Unit'};
+    unit_on = 0;
+end
 
 header_row    = 1;
 static_column_no = 6;
@@ -162,14 +175,19 @@ end
 for EDS_i = 1:EDS_no
     % loop over different categories
     for c_i = 1:numel(category_criterium)
+        %[is_selected,peril_criterum,unit_criterium] = climada_assets_select(entity,EDS(EDS_i).peril_ID,'',category_criterium(c_i));
         [is_selected,peril_criterum,unit_criterium] =...
             climada_assets_select(entity,EDS(EDS_i).peril_ID,'',category_criterium(c_i));
         if any(is_selected)  
             if EDS_i==1 % fill static columns
-                output_report(c_i+1,1) = num2cell(category_criterium(c_i));
+                if category_cell
+                    output_report{c_i+1,1} = category_criterium{c_i};
+                else
+                    output_report(c_i+1,1) = num2cell(category_criterium(c_i));
+                end
                 output_report(c_i+1,2) = num2cell(sum(entity.assets.Value(is_selected)));
-                output_report{c_i+1,3} = unit_criterium{1};       
-                output_report{c_i+1,4} = peril_criterum; 
+                if ~isempty(unit_criterium); output_report{c_i+1,3} = unit_criterium{1};end      
+                if ~isempty(peril_criterum); output_report{c_i+1,4} = peril_criterum;end
                 output_report(c_i+1,5) = num2cell(sum(EDS(end).ED_at_centroid(is_selected)));
                 output_report(c_i+1,6) = num2cell(sum(EDS(end).ED_at_centroid(is_selected))...
                                                               /sum(entity.assets.Value(is_selected)));
@@ -194,38 +212,40 @@ for EDS_i = 1:EDS_no
     end %c_i 
 end
 
-for EDS_i = 1:EDS_no
-    for u_i = 1:numel(unit_list)
-        [is_selected,peril_criterum,unit_criterium,category_criterium] =...
-            climada_assets_select(entity,EDS(EDS_i).peril_ID,unit_list{u_i},'');
-        if any(is_selected)
-            if EDS_i==1
-                output_report{c_i+u_i+1+1,1} = sprintf('%d, ',category_criterium);
-                output_report(c_i+u_i+1+1,2) = num2cell(sum(entity.assets.Value(is_selected)));
-                output_report{c_i+u_i+1+1,3} = unit_list{u_i};       
-                output_report{c_i+u_i+1+1,4} = peril_criterum; 
-                output_report(c_i+u_i+1+1,5) = num2cell(sum(EDS(end).ED_at_centroid(is_selected)));
-                output_report(c_i+u_i+1+1,6) = num2cell(sum(EDS(end).ED_at_centroid(is_selected))...
-                                                                       /sum(entity.assets.Value(is_selected)));
-            end
-            column_position = static_column_no + (EDS_i-1)*variable_column_no;
-            if benefit_flag == 1
-                % benefit per measures (averted AED)
-                benefit = sum(EDS(end).ED_at_centroid(is_selected)) - sum(EDS(EDS_i).ED_at_centroid(is_selected));
-                benefit_percentage = benefit / sum(EDS(end).ED_at_centroid(is_selected));
-                output_report(c_i+u_i+1+1,column_position+1) = num2cell(benefit);   
-                if percentage_flag == 1
-                    output_report(c_i+u_i+1+1,column_position+2) = num2cell(benefit_percentage);
-                end
-            else
-                % AED with measure
-                output_report(c_i+u_i+1+1,column_position+1) = num2cell(sum(EDS(EDS_i).ED_at_centroid(is_selected)));
-                if percentage_flag == 1
-                    output_report(c_i+u_i+1+1,column_position+2) = num2cell(sum(EDS(EDS_i).ED_at_centroid(is_selected))...
+if unit_on
+    for EDS_i = 1:EDS_no
+        for u_i = 1:numel(unit_list)
+            [is_selected,peril_criterum,unit_criterium,category_criterium] =...
+                climada_assets_select(entity,EDS(EDS_i).peril_ID,unit_list{u_i},'');
+            if any(is_selected)
+                if EDS_i==1
+                    output_report{c_i+u_i+1+1,1} = sprintf('%d, ',category_criterium);
+                    output_report(c_i+u_i+1+1,2) = num2cell(sum(entity.assets.Value(is_selected)));
+                    output_report{c_i+u_i+1+1,3} = unit_list{u_i};       
+                    output_report{c_i+u_i+1+1,4} = peril_criterum; 
+                    output_report(c_i+u_i+1+1,5) = num2cell(sum(EDS(end).ED_at_centroid(is_selected)));
+                    output_report(c_i+u_i+1+1,6) = num2cell(sum(EDS(end).ED_at_centroid(is_selected))...
                                                                            /sum(entity.assets.Value(is_selected)));
                 end
-            end
-        end  
+                column_position = static_column_no + (EDS_i-1)*variable_column_no;
+                if benefit_flag == 1
+                    % benefit per measures (averted AED)
+                    benefit = sum(EDS(end).ED_at_centroid(is_selected)) - sum(EDS(EDS_i).ED_at_centroid(is_selected));
+                    benefit_percentage = benefit / sum(EDS(end).ED_at_centroid(is_selected));
+                    output_report(c_i+u_i+1+1,column_position+1) = num2cell(benefit);   
+                    if percentage_flag == 1
+                        output_report(c_i+u_i+1+1,column_position+2) = num2cell(benefit_percentage);
+                    end
+                else
+                    % AED with measure
+                    output_report(c_i+u_i+1+1,column_position+1) = num2cell(sum(EDS(EDS_i).ED_at_centroid(is_selected)));
+                    if percentage_flag == 1
+                        output_report(c_i+u_i+1+1,column_position+2) = num2cell(sum(EDS(EDS_i).ED_at_centroid(is_selected))...
+                                                                               /sum(entity.assets.Value(is_selected)));
+                    end
+                end
+            end  
+        end
     end
 end
 

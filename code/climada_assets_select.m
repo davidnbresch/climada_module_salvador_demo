@@ -25,10 +25,12 @@ function [is_selected,peril_criterum,unit_criterium,category_criterium] = climad
 %   unit_criterium: a string or a cell, e.g. 'USD' or 'people'
 %   category_criterium: a string, cell or a number, e.g. 7
 % MODIFICATION HISTORY:
-%   Lea Mueller, muellele@gmail.com, 20150730, init
-%   Lea Mueller, muellele@gmail.com, 20150731, add outputs for criteria, e.g. if select only
+% Lea Mueller, muellele@gmail.com, 20150730, init
+% Lea Mueller, muellele@gmail.com, 20150731, add outputs for criteria, e.g. if select only
 %                'TC', unit_criterium will return all corresponding units, e.g. USD and people
-%   Lea Mueller, muellele@gmail.com, 20150831, rename to climada_assets_select
+% Lea Mueller, muellele@gmail.com, 20150831, rename to climada_assets_select
+% Lea Mueller, muellele@gmail.com, 20150910, reshape selection vectors so that dimensions match
+% Lea Mueller, muellele@gmail.com, 20150910, enhance to cope with Category names (cell) instead of numbers
 % -
 
 
@@ -70,7 +72,7 @@ end
 % find category in entity.assets.Category
 if ~isempty(category_criterium)
     if isfield(entity.assets, 'Category')
-        if ischar(category_criterium)
+        if iscell(category_criterium)
             is_category  = strcmp(entity.assets.Category, category_criterium);
         elseif isnumeric(category_criterium)
             is_category  = ismember(entity.assets.Category, category_criterium);
@@ -81,6 +83,11 @@ end
 
 % combine the three logical arrays, selected assets must fullfil ALL
 % criterias
+% reshape selection vectors, so that dimensions match
+n = numel(entity.assets.lon);
+is_selected = reshape(is_selected,n,1);
+is_unit = reshape(is_unit,n,1);
+is_category = reshape(is_category,n,1);
 is_selected = logical(is_selected .* is_unit .* is_category);
 
 
@@ -98,10 +105,15 @@ end
 
 % set empty unit or category criterium if not given, that goes together
 % with the selected unit/category criterium
+print_cat = 1;
 if isfield(entity.assets, 'Category') & isfield(entity.assets, 'Value_unit')
     unit_criterium = unique(entity.assets.Value_unit(is_selected));
     category_criterium = unique(entity.assets.Category(is_selected));
+elseif isfield(entity.assets, 'Category') & ~isfield(entity.assets, 'Value_unit')
+    category_criterium = unique(entity.assets.Category(is_selected));
+    print_cat = 0;
 end
+
 
 % create strings for fprintf
 if iscell(peril_criterum)
@@ -130,6 +142,10 @@ else
     category_criterium_str = category_criterium;
 end
            
+if print_cat
+    fprintf('%d locations selected (%s, %s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str, category_criterium_str)
+else
+    fprintf('%d locations selected (%s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str)
+end
 
-fprintf('%d locations selected (%s, %s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str, category_criterium_str)
 
