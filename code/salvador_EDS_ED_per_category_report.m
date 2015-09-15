@@ -1,4 +1,4 @@
-function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file,sheet,benefit_flag, percentage_flag)
+function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file,sheet,benefit_flag, percentage_flag, assets_flag)
 % salvador_EDS_ED_per_category_report
 % MODULE:
 %   salvador_demo
@@ -33,18 +33,20 @@ function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file
 % Lea Mueller, muellele@gmail.com, 20150831, rename climada_assets_select from salvador_assets_select
 % Lea Mueller, muellele@gmail.com, 20150831, enhance to cope with multiple EDS
 % Lea Mueller, muellele@gmail.com, 20150910, enhance to cope with Category names (cell) instead of numbers
+% Lea Mueller, muellele@gmail.com, 20150915, add assets_flag to write out sum of entity.assets.Value per category, as specified in EDS(EDS_i).assets.filename
 %-
 
 global climada_global
 if ~climada_init_vars,return;end % init/import global variables
 
 % poor man's version to check arguments
-if ~exist('entity'            ,'var'), entity             = []; end
+if ~exist('entity'  ,'var'), entity = []; end
 if ~exist('EDS'     ,'var'),    EDS     =[];	end
 if ~exist('xls_file','var'),    xls_file='';    end
 if ~exist('sheet'   ,'var'),    sheet   ='';    end
 if ~exist('benefit_flag','var'),benefit_flag = 1; end
 if ~exist('percentage_flag','var'),percentage_flag = 0; end
+if ~exist('assets_flag','var'),assets_flag = 0; end
 
 
 % PARAMETERS
@@ -119,6 +121,11 @@ if isempty(unit_list)
     unit_on = 0;
 end
 
+% backup of original entity, as we will load 
+%the other entity files from EDS.assets.filename
+entity_ori = entity;
+
+
 header_row    = 1;
 static_column_no = 6;
 output_report = cell(numel(category_criterium)+numel(unit_list)+header_row,static_column_no);
@@ -144,11 +151,14 @@ output_report{1,6} = sprintf('AED %s (%%)', EDS(end).annotation_name);
 
 
 EDS_no = numel(EDS);
+variable_column_no = 1;
 if percentage_flag == 1
-    variable_column_no = 2;
-else
-    variable_column_no = 1;
+    variable_column_no = variable_column_no+1;
 end
+if assets_flag == 1
+    variable_column_no = variable_column_no+1;
+end
+
 for EDS_i = 1:EDS_no
     column_position = static_column_no + (EDS_i-1)*variable_column_no;
     if benefit_flag == 1
@@ -162,6 +172,9 @@ for EDS_i = 1:EDS_no
             output_report{1,column_position+2} = sprintf('AED %s (%%)', EDS(EDS_i).annotation_name);
         end
     end
+    if assets_flag
+        output_report{1,column_position+1+1} = sprintf('Exposure value %s (%s)', EDS(EDS_i).annotation_name, sprintf('%s ',unit_list{:}));
+    end
 end
 
 % single_Value_col = 1; 
@@ -173,6 +186,19 @@ end
 
 % loop over EDS (mutliple measures, the end measure is the baseline/control scenario)
 for EDS_i = 1:EDS_no
+    
+    if assets_flag
+        % load entity as specified in EDS.assets.filename
+        if exist(EDS(EDS_i).assets.filename,'file')
+            load(EDS(EDS_i).assets.filename)
+            [pathstr, name, ext] = fileparts(EDS(EDS_i).assets.filename);
+            fprintf('Load new entity (%s) to include asset values.\n',name)
+        end
+    else
+        entity = entity_ori;
+    end %assets_flag
+            
+            
     % loop over different categories
     for c_i = 1:numel(category_criterium)
         %[is_selected,peril_criterum,unit_criterium] = climada_assets_select(entity,EDS(EDS_i).peril_ID,'',category_criterium(c_i));
@@ -207,7 +233,11 @@ for EDS_i = 1:EDS_no
                     output_report(c_i+1,column_position+2) = num2cell(sum(EDS(EDS_i).ED_at_centroid(is_selected))...
                                                               /sum(entity.assets.Value(is_selected)));
                 end
-            end
+            end %benefit_flag 
+            
+            if assets_flag
+                output_report(c_i+1,column_position+1+1) = num2cell(sum(entity.assets.Value(is_selected)));
+            end %assets_flag
         end  
     end %c_i 
 end
@@ -243,7 +273,11 @@ if unit_on
                         output_report(c_i+u_i+1+1,column_position+2) = num2cell(sum(EDS(EDS_i).ED_at_centroid(is_selected))...
                                                                                /sum(entity.assets.Value(is_selected)));
                     end
-                end
+                end % benefit_flag
+                
+                if assets_flag
+                    output_report{c_i+u_i+1+1,column_position+1+1} = num2cell(sum(entity.assets.Value(is_selected)));
+                end %assets_flag
             end  
         end
     end
