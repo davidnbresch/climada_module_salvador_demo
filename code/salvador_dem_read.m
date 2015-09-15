@@ -26,8 +26,9 @@ function [dem, resolution_m] = salvador_dem_read(dem_filename, resolution_m, che
 %           event set has been generated
 %       .date_created: time when the dem structure has been generated
 % MODIFICATION HISTORY:
-%   Lea Mueller, muellele@gmail.com, 20150729, init
-%   Lea Mueller, muellele@gmail.com, 20150729, cutoff last column and row, only if resolution is coarser than original resolution
+%  Lea Mueller, muellele@gmail.com, 20150729, init
+%  Lea Mueller, muellele@gmail.com, 20150729, cutoff last column and row, only if resolution is coarser than original resolution
+%  Lea Mueller, muellele@gmail.com, 20150914, transform grid to lat/lon and then create vectors lat and lon
 % -
 
 dem          = []; % init
@@ -110,21 +111,44 @@ end
 dem_grid(dem_grid == NODATA_value) = 0;
 cellsize          = cellsize*resolution_factor;
 [dem_i, dem_j ]   = size(dem_grid);
+[dem_i_ori, dem_j_ori]   = size(dem_grid_ori);
+
 
 %% create dem struct (vectors lon, lat, value)
-x_dem     = linspace(xllcorner, xllcorner+cellsize*dem_j, dem_j);
-y_dem     = linspace(yllcorner, yllcorner+cellsize*dem_i, dem_i);
-[X, Y ]   = meshgrid(x_dem,y_dem);
-dem.lon   = zeros(1,dem_j*dem_i); %init
-dem.lat   = zeros(1,dem_j*dem_i); %init
-dem.X     = reshape(X,1,numel(x_dem)*numel(y_dem));
-dem.Y     = reshape(Y,1,numel(x_dem)*numel(y_dem));  
-dem.value = reshape(dem_grid,1,numel(x_dem)*numel(y_dem));
-dem.unit  = 'masl';
+
+%transform to lat/lon
+[lonllcorner, latllcorner] = utm2ll_salvador([xllcorner xllcorner+cellsize*dem_j],[yllcorner yllcorner+cellsize*dem_i]);
+
+% create dem struct
+lon_dem = lonllcorner(1):diff(lonllcorner)/(dem_j-1):lonllcorner(2); %0.0000914066
+lat_dem = latllcorner(1):diff(latllcorner)/(dem_i-1):latllcorner(2); %0.0000914066
+[lon, lat ]   = meshgrid(lon_dem,lat_dem);
+dem.lon       = reshape(lon,1,numel(lon_dem)*numel(lat_dem));
+dem.lat       = reshape(lat,1,numel(lon_dem)*numel(lat_dem));  
+dem.value     = reshape(dem_grid,1,numel(lon_dem)*numel(lat_dem));
+dem.unit      = 'masl';
 dem.resolution_m   = resolution_m;
 dem.comment        = sprintf('DEM on %dm resolution, read from %s',resolution_m, dem_filename);
-%transform to lat/lon
-[dem.lon, dem.lat] = utm2ll_salvador(dem.X, dem.Y);
+
+% figure
+% plotclr(dem.lon, dem.lat, dem.value,'s',3.5,1,500,650)
+% % axis(axlim); box on
+% hold on
+% plotclr(entity.assets.lon, entity.assets.lat, entity.assets.Value,marker,markersize,cbar_on,miv,mav);
+
+% x_dem     = linspace(xllcorner, xllcorner+cellsize*dem_j, dem_j);
+% y_dem     = linspace(yllcorner, yllcorner+cellsize*dem_i, dem_i);
+% [X, Y ]   = meshgrid(x_dem,y_dem);
+% dem.lon   = zeros(1,dem_j*dem_i); %init
+% dem.lat   = zeros(1,dem_j*dem_i); %init
+% dem.X     = reshape(X,1,numel(x_dem)*numel(y_dem));
+% dem.Y     = reshape(Y,1,numel(x_dem)*numel(y_dem));  
+% dem.value = reshape(dem_grid,1,numel(x_dem)*numel(y_dem));
+% dem.unit  = 'masl';
+% dem.resolution_m   = resolution_m;
+% dem.comment        = sprintf('DEM on %dm resolution, read from %s',resolution_m, dem_filename);
+% %transform to lat/lon
+% [dem.lon, dem.lat] = utm2ll_salvador(dem.X, dem.Y);
 
 
 
@@ -163,7 +187,7 @@ if check_plot
     shp_file = [climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'];
     if exist(shp_file,'file')
         load(shp_file)
-        shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','','','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+        shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','','','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
         shape_plotter(polygon_LS,'','lon','lat')
     end
     
