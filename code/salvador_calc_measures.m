@@ -65,7 +65,8 @@ switch peril_ID
             assets_file = ['20150721' filesep 'entity_AMSS_NEW.xls'];
         end
         if isempty(damfun_file)
-            damfun_file = ['20150806' filesep 'DamageFunction_FL_2ndRUN.xlsx'];
+            damfun_file = ['20150910' filesep 'DamageFunction_150910.xlsx'];
+            % damfun_file = ['20150806' filesep 'DamageFunction_FL_2ndRUN.xlsx'];
             % consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150811_TC'];
         end
         if isempty(measures_file)
@@ -94,6 +95,11 @@ load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm
 entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
 entity.assets.reference_year = 2015;
 entity.assets = rmfield(entity.assets,'VALNaN');
+
+max_distance_to_hazard = 20;
+entity = climada_assets_encode(entity,hazard,max_distance_to_hazard);
+force_re_encode = 0;
+
 entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
 entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
 
