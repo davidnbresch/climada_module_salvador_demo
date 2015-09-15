@@ -32,6 +32,7 @@ function hazard = climada_hazard_encode_distance(hazard,entityORassetsORcentroid
 % Lea Mueller, muellele@gmail.com, 20150713, intensity as 1-1/cutoff*distance_m instead of distance
 % Gilles Stassen, gillesstassen@hotmail.com, 20150803, faster (~30x) alternative to knnsearch; argin entity -> entityORassetsORcentroids
 % Gilles Stassen, 20150805, elevation cutoff. Entity points higher in elevation than land slide excluded
+% Lea Mueller, muellele@gmail.com, 20150915, bugfix when calculate distance_m from intensity
 %-
 
 % init global variables
@@ -71,8 +72,6 @@ if isempty(cutoff), cutoff = 1000; end
 hazard = climada_hazard2octave(hazard); % Octave compatibility for -v7.3 mat-files
 
 
-
-
 %get hazard structure
 hazard_distance = hazard;
 
@@ -104,12 +103,15 @@ intensity_full = full(hazard.intensity);
 % [event_indx,location_indx,s] = find(hazard.intensity);
  
 stats_toolbox = 0;
-try
-    knnsearch(rand(1,2),rand(1,2)); % just to test
-catch
-    cprintf([ 1 0.5 0],'WARNING: no access to statistics toolbox, see line 141 in code for details on workaround\n')
-    stats_toolbox = 0;
-end
+% try
+%     knnsearch(rand(1,2),rand(1,2)); % just to test
+%     stats_toolbox = 1;
+% catch
+%     cprintf([ 1 0.5 0],'WARNING: no access to statistics toolbox, see line 141 in code for details on workaround\n')
+%     stats_toolbox = 0;
+% end
+
+n_assets = numel(entity.assets.lon);
 
 % init watibar
 t0       = clock;
@@ -140,7 +142,7 @@ for i=1:length(hazard_distance.event_ID)
         elev_check = 0;
         if isfield(entity.assets,'elevation_m') && isfield(hazard,'elevation_m')
             elev_check  = 1;
-           	hazard_elev = [reshape(hazard.elevation_m(nonzero_indx),numel(nonzero_indx),1)];
+          	hazard_elev = [reshape(hazard.elevation_m(nonzero_indx),numel(nonzero_indx),1)];
             entity_elev = [reshape(entity.assets.elevation_m,numel(entity.assets.elevation_m),1)];
         end
         % find closest hazard centroid and calculate distance in meters to it
@@ -150,7 +152,8 @@ for i=1:length(hazard_distance.event_ID)
             [~, distance_m] = knnsearch(hazard_lon_lat,entity_lon_lat,'Distance',@climada_geo_distance_2); 
         else
             % this seems to be much faster (~30x !!!)
-            for pt_i = 1:length(hazard_lon_lat)
+            distance_m = zeros(n_assets,numel(nonzero_indx));
+            for pt_i = 1:size(hazard_lon_lat,1)
                 distance_m(:,pt_i) = climada_geo_distance_2(hazard_lon_lat(pt_i,:),entity_lon_lat);
                 if elev_check,  distance_m(entity_elev>hazard_elev(pt_i),pt_i) = inf;   end
             end
@@ -202,8 +205,8 @@ end
 hazard_distance.intensity = sparse(intensity_matrix);
 
 % calculate distance as well (in meters)
-% hazard_distance.distance_m = sparse((1 - hazard_distance.intensity) .*cutoff);
-hazard_distance.distance_m = sparse(max(cutoff - hazard_distance.intensity,0));
+hazard_distance.distance_m = sparse((1 - hazard_distance.intensity) .*cutoff);
+% hazard_distance.distance_m = sparse(max(cutoff - hazard_distance.intensity,0));
 
 
 % overwrite hazard with hazard_distance

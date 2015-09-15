@@ -1,5 +1,433 @@
 
-% create landslide susceptibility map 
+% load assets
+load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
+
+
+% load hazard LS binary
+load([climada_global.project_dir filesep 'Salvador_hazard_LS_2015'])
+
+
+
+
+%-----------------------------------
+%% create landslide hazard
+%-----------------------------------
+
+% module data dir
+module_data_dir =[climada_global.modules_dir filesep 'salvador_demo' filesep 'data'];
+
+% landslide directory on shared drive
+ls_dir = [climada_global.project_dir filesep 'LS' filesep];
+
+% load assets
+load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
+
+%% create dem/centroids
+resolution_m = 30;
+check_plot = 1;
+[dem, resolution_m] = salvador_dem_read('', resolution_m, check_plot);
+
+% only use dem values that are close to the hazard
+indx_valid = inpoly([dem.lon' dem.lat'],[rectangle_canas.lon' rectangle_canas.lat']);
+% sum(indx_valid)
+% plot(dem.lon(indx_valid),dem.lat(indx_valid),'.')
+centroids.lon     = dem.lon(indx_valid);
+centroids.lat     = dem.lat(indx_valid);
+centroids.elevation_m = dem.value(indx_valid);
+F_DEM = scatteredInterpolant(centroids.lon',centroids.lat',centroids.elevation_m');
+
+res_km = 0.03;      % Centroids resolution
+centroids = climada_generate_centroids(rectangle_canas,res_km,0,'NO_SAVE',1);
+centroids.admin0_ISO3 = 'SLV'; 
+% Compute centroids elevation
+centroids.elevation_m = F_DEM(centroids.lon',centroids.lat')';
+centroids.basin_ID = ones(size(centroids.lon));
+centroids = centroids_TWI(centroids, 1);
+save([ls_dir 'centroids_las_canas_30m_v1'],'centroids')
+
+% centroids.centroid_ID = 1:numel(centroids.lon);
+% centroids.onLand = ones(size(centroids.lon));
+% centroids.comment = dem.comment;
+% % add geographical features
+% centroids = centroids_TWI(centroids, 1);
+% add flow direction for the next 10 centroids
+% centroids = climada_flow_find(centroids);
+% save([ls_dir 'centroids_las_canas_30m'],'centroids')
+load([ls_dir 'centroids_las_canas_30m'])
+
+
+
+%% create ls hazard
+
+n_events = 1000;
+wiggle_factor = 0.35; 
+TWI_condition = 0.9;
+wiggle_factors_slope = 0.1; 
+slope_condition = 0.45;
+n_downstream_cells = 2;
+hazard_set_file = [ls_dir 'Salvador_hazard_LS_2015.mat'];
+hazard  = climada_ls_hazard_set_simple(centroids,n_events,hazard_set_file,wiggle_factor,TWI_condition,wiggle_factors_slope,slope_condition,n_downstream_cells,polygon_canas);
+
+
+% encode to distance
+centroids.lon = hazard.lon;
+centroids.lat = hazard.lat;
+cutoff = 1000;
+hazard_distance = climada_hazard_encode_distance(hazard,centroids,cutoff);
+save([ls_dir 'hazard_distance'],'hazard_distance')
+
+% calculate statistics for return periods
+% hazard_distance.intensity_ori = hazard_distance.intensity;
+% hazard_distance.intensity = hazard_distance.distance_m;
+% return_periods = [2 5 10 20 33 50 80 100 500 1000];
+return_periods = [2 5 10 25 50 100];
+hazard_distance_stats = climada_hazard_stats(hazard_distance,return_periods,0);
+
+% figure
+% e_i = 500;
+% plotclr(hazard.lon, hazard.lat, hazard_distance.intensity_fit(e_i,:),'','',1,0,400);
+% plotclr(hazard.lon, hazard.lat, hazard_distance.intensity(e_i,:),'','',1);
+% hazard_distance.distance_m = (1-hazard_distance.intensity)*cutoff;
+
+figure
+plotclr(hazard_distance_stats.lon,hazard.lat,hazard_distance_stats.centroid_ID,'','',1)
+figure; plot(hazard_distance_stats.R,hazard_distance_stats.intensity_sort(:,4500),'-x')
+hold on; plot([0 hazard_distance_stats.R_fit],[0; hazard_distance_stats.intensity_fit(:,4500)],'-xr')
+xlim([0 50])
+
+
+
+%% create return period figures
+climada_hazard_stats_figure(hazard_distance_stats,[2 5 10 25 50])
+
+% cmap = flipud(climada_colormap('LS'));
+cmap = climada_colormap('LS');
+hazard_distance_stats.distance_m_fit = (1.-hazard_distance_stats.intensity_fit)*hazard_distance.cutoff_m;
+hazard_distance_stats.distance_m_fit(hazard_distance_stats.intensity_fit>=1) = 1;
+markersize = 2.2;
+marker = 's';
+for e_i = 3%1:length(return_periods)
+    %e_i = 3;
+    fig = climada_figuresize(0.65,0.8);%(0.5,0.6);
+    cbar = plotclr(hazard.lon, hazard.lat, hazard_distance_stats.distance_m_fit(e_i,:),marker,markersize,1,0,415,cmap);
+    %plotclr(hazard.lon, hazard.lat, hazard_distance_stats.intensity_fit(e_i,:),'','',1,0,1,cmap);
+    hold on; 
+    plot3(polygon_canas.X, polygon_canas.Y,ones(size(polygon_canas.X))*1000,'color',[100 100 100]/255);
+    g = plot3(entity.assets.lon, entity.assets.lat,ones(size(entity.assets.lat))*1000,'.','linewidth',0.2,'markersize',1.8,'color',[200 200 200]/255);%[255 64 64 ]/255);
+    %g = plot(entity.assets.lon-5, entity.assets.lat-5,'.','linewidth',1,'markersize',7,'color',[200 200 200]/255);%[255 64 64 ]/255);
+    %set(cbar,'YTick',[])
+    set(get(cbar,'ylabel'),'String', 'Distance to landslide (m)','fontsize',13);
+    title(sprintf('Return period %d years',hazard_distance_stats.R_fit(e_i)),'fontsize',13)
+    axis(axlim); box on; climada_figure_scale_add('',7,1)
+    
+    pdf_filename = sprintf('Landslides_las_Canas_%d_years_.pdf',hazard_distance_stats.R_fit(e_i));
+    print(fig,'-dpdf',[ls_dir pdf_filename])
+end
+%%
+
+
+
+% figure
+n_colors = jet(n_events);
+fig = climada_figuresize(0.5,0.6);
+plot(entity.assets.lon, entity.assets.lat,'.','linewidth',0.2,'markersize',0.8,'color',[255 64 64 ]/255);
+hold on
+legendstr = []; h = [];
+for e_i = 1:n_events
+    is_event = logical(hazard.intensity(e_i,:));
+    %hold on; plot3(hazard.lon(is_event), hazard.lat(is_event), ones(sum(is_event))*3000, 'dr','linewidth',2,'markersize',5,'color',[255 64 64 ]/255)
+    h(e_i) = plot(hazard.lon(is_event), hazard.lat(is_event),'dr','linewidth',2,'markersize',5,'color',n_colors(e_i,:));
+    hold on; plot(polygon_canas.X, polygon_canas.Y, 'b-');
+    legendstr{e_i} = sprintf('Event %d',e_i);
+end
+title(sprintf('LS event %d',e_i)); axis(axlim); box on; climada_figure_scale_add('',7,1)
+legend(h,legendstr)
+% pdf_filename = sprintf('LS_aspect.pdf');
+% print(fig,'-dpdf',[ls_dir pdf_filename])
+
+
+%% visualize landslide hazard
+% sort events according to number of sliding cells
+no_sliding_cell = sum(full(hazard.intensity),2);
+[sorted_sliding_cells, is_sorted] = sort(no_sliding_cell);
+
+% is_ranked = [is_sorted(end) is_sorted(round(length(is_sorted)/3*2)) is_sorted(round(length(is_sorted)/3)) is_sorted(1)];
+
+is_ranked = [is_sorted(end) is_sorted(round(length(is_sorted)/2)) is_sorted(1)];
+
+no_sliding_cell(is_sorted(end))
+no_sliding_cell(is_sorted(round(length(is_sorted)/2)))
+no_sliding_cell(is_sorted(1))
+
+n_events = numel(is_ranked);
+% figure
+% n_colors = flipud(lines(n_events));
+n_colors(1,:) = [238 43 43]/255;
+n_colors(2,:) = [255 165 0]/255;
+n_colors(3,:) = [0 154 205]/255;
+% n_colors(3,:) = [238 232 205]/255;
+% beginColor =  [238 43 43]/255;
+% endColor = [255 165 0]/255;
+% n_colors = makeColorMap(beginColor,endColor,n_events);
+
+
+fig = climada_figuresize(0.8,1.0);%(0.5,0.6);
+g = plot(entity.assets.lon, entity.assets.lat,'.','linewidth',0.2,'markersize',1.8,'color',[200 200 200]/255);%[255 64 64 ]/255);
+hold on
+g = plot(entity.assets.lon-5, entity.assets.lat-5,'.','linewidth',1,'markersize',7,'color',[200 200 200]/255);%[255 64 64 ]/255);
+legendstr = []; h = [];
+markersize = 6;
+for e_i = 1:n_events
+    is_event = logical(hazard.intensity(is_ranked(e_i),:));
+    %hold on; plot3(hazard.lon(is_event), hazard.lat(is_event), ones(sum(is_event))*3000, 'dr','linewidth',2,'markersize',5,'color',[255 64 64 ]/255)
+    h(e_i) = plot(hazard.lon(is_event), hazard.lat(is_event),'o','linewidth',2,'markersize',markersize-1*(e_i-1),'color',n_colors(e_i,:),'markerfacecolor',n_colors(e_i,:));
+    hold on; plot(polygon_canas.X, polygon_canas.Y, 'b-','color',[100 100 100]/255);
+    legendstr{e_i} = sprintf('Event %d',is_ranked(e_i));
+end
+% title(sprintf('LS event %d',e_i)); 
+title('Landslides, Rio las Cañas');
+axis(axlim); box on; climada_figure_scale_add('',7,1)
+legend([h g],{'50 year return period' '20 year return period' '2 year return period' 'Assets (draft)'},'location','northwest')
+legend('boxoff')
+% legend(h,legendstr)
+climada_figure_axis_limits_equal_for_lat_lon(axlim)
+pdf_filename = sprintf('LS_return_periods.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+
+%% visualize landslide hazard as return period
+no_sliding_cell_per_centroid = sum(full(hazard.intensity),1);
+% max(no_sliding_cell_per_centroid)
+% [sorted_sliding_cells, is_sorted] = sort(no_sliding_cell_per_centroid);
+
+no_cells_return_period = [50 150 330];
+
+n_events = numel(no_cells_return_period);
+% figure
+% n_colors = flipud(lines(n_events));
+n_colors(1,:) = [238 43 43]/255;
+n_colors(2,:) = [255 165 0]/255;
+n_colors(3,:) = [0 154 205]/255;
+% n_colors(3,:) = [238 232 205]/255;
+% beginColor =  [238 43 43]/255;
+% endColor = [255 165 0]/255;
+% n_colors = makeColorMap(beginColor,endColor,n_events);
+
+
+fig = climada_figuresize(0.8,1.0);%(0.5,0.6);
+g = plot(entity.assets.lon, entity.assets.lat,'.','linewidth',0.2,'markersize',1.8,'color',[200 200 200]/255);%[255 64 64 ]/255);
+hold on
+g = plot(entity.assets.lon-5, entity.assets.lat-5,'.','linewidth',1,'markersize',7,'color',[200 200 200]/255);%[255 64 64 ]/255);
+legendstr = []; h = [];
+markersize = 6;
+markersize_list = [6 4 3];
+for e_i = 1:n_events
+    is_event = no_sliding_cell_per_centroid>no_cells_return_period(e_i);
+    h(e_i) = plot(hazard.lon(is_event), hazard.lat(is_event),'o','linewidth',2,'markersize',markersize_list(e_i),'color',n_colors(e_i,:),'markerfacecolor',n_colors(e_i,:));
+    hold on; plot(polygon_canas.X, polygon_canas.Y, 'b-','color',[100 100 100]/255);
+    legendstr{e_i} = sprintf('Return period %d',round(hazard.orig_years./no_cells_return_period(e_i)));
+end
+% title(sprintf('LS event %d',e_i)); 
+title('Landslides, Rio las Cañas');
+axis(axlim); box on; climada_figure_scale_add('',7,1)
+% legend([h g],{'50 year return period' '20 year return period' '2 year return period' 'Assets (draft)'},'location','northwest')
+legend(h,legendstr)
+% legend('boxoff')
+climada_figure_axis_limits_equal_for_lat_lon(axlim)
+% pdf_filename = sprintf('LS_return_periods.pdf');
+% print(fig,'-dpdf',[ls_dir pdf_filename])
+
+
+
+%% Historical land slide data
+% historical_LS = climada_shaperead([module_data_dir filesep 'system' filesep 'REPORTE DE DAÑOS 07 CIERRE06pm noviembre 2011.shp']);
+% historical_LS_2 = climada_shaperead([module_data_dir filesep 'system' filesep 'deslizamientos_nov2014.shp']);
+
+
+
+%%  create figures to understand the situation
+
+delta_lon = 0.005;
+lon_min = min(entity.assets.lon)-delta_lon;
+lon_max = max(entity.assets.lon)+delta_lon;
+lat_min = min(entity.assets.lat)-delta_lon;
+lat_max = max(entity.assets.lat)+delta_lon;
+
+markersize = 2.2;
+marker = 's';
+cbar_on = 1;
+axlim = [lon_min lon_max lat_min lat_max];
+miv = '';
+mav = '';
+
+% assets
+titlestr = 'Entity assets (USD)';
+miv = 1000;
+mav = 2*10^5;
+fig = climada_figuresize(0.5,0.6);
+plotclr(entity.assets.lon, entity.assets.lat, entity.assets.Value,marker,markersize,cbar_on,miv,mav);
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+polygon_canas = climada_shape_selector(fig,1,1);
+polygon_canas.lon = polygon_canas.X;
+polygon_canas.lat = polygon_canas.Y;
+pdf_filename = sprintf('LS_entity_assets.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+% dem
+titlestr = 'DEM (masl)';
+miv = 520;
+mav = 650;
+fig = climada_figuresize(0.5,0.6);
+plotclr(centroids.lon, centroids.lat, centroids.elevation_m, marker,markersize,cbar_on,miv,mav);
+hold on; plot3(entity.assets.lon, entity.assets.lat, ones(size(entity.assets.lon))*3000, '.r','linewidth',0.2,'markersize',1.2,'color','k')%[255 64 64 ]/255
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+% pdf_filename = sprintf('LS_DEM_masl.pdf');
+pdf_filename = sprintf('LS_DEM_masl_with_assets_black.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+% slope
+titlestr = 'Slope (degree)';
+miv = 0;
+mav = 40;
+fig = climada_figuresize(0.5,0.6);
+plotclr(centroids.lon, centroids.lat, centroids.slope_deg, marker,markersize,cbar_on,miv,mav);
+hold on; plot3(entity.assets.lon, entity.assets.lat, ones(size(entity.assets.lon))*3000, '.r','linewidth',0.2,'markersize',1.2,'color',[255 64 64 ]/255)
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+% pdf_filename = sprintf('LS_slope_degree.pdf');
+pdf_filename = sprintf('LS_slope_degree_with assets.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+% TWI
+titlestr = 'TWI (-)';
+miv = 2;
+mav = 9.5;
+fig = climada_figuresize(0.5,0.6);
+plotclr(centroids.lon, centroids.lat, centroids.TWI, marker,markersize,cbar_on,miv,mav);
+hold on; plot3(entity.assets.lon, entity.assets.lat, ones(size(entity.assets.lon))*3000, '.r','linewidth',0.2,'markersize',1.2,'color','k')
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+% pdf_filename = sprintf('LS_TWI.pdf');
+pdf_filename = sprintf('LS_TWI_with_assets.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+% Flood score
+titlestr = 'Flood score (-)';
+miv = -5;
+mav = 250;
+fig = climada_figuresize(0.5,0.6);
+plotclr(centroids.lon, centroids.lat, centroids.FL_score, marker,markersize,cbar_on,miv,mav);
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+pdf_filename = sprintf('LS_flood_score.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+% plotclr(centroids.lon, centroids.lat, centroids.FL_score, marker,markersize,cbar_on);
+
+% sink_ID
+titlestr = 'Sink ID (-)';
+fig = climada_figuresize(0.5,0.6);
+plotclr(centroids.lon, centroids.lat, centroids.sink_ID, marker,markersize,cbar_on);
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+pdf_filename = sprintf('LS_sink_ID.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+% aspect
+titlestr = 'Aspect (-)';
+miv = 0;
+mav = 360;
+fig = climada_figuresize(0.5,0.6);
+plotclr(centroids.lon, centroids.lat, centroids.aspect_deg, marker,markersize,cbar_on,miv,mav);
+title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
+pdf_filename = sprintf('LS_aspect.pdf');
+print(fig,'-dpdf',[ls_dir pdf_filename])
+
+
+
+
+%-----------------------------------
+%-----------------------------------
+%-----------------------------------
+
+
+
+
+
+
+
+%% landslide hazard for rio las canas
+% % DEM 50m resolution
+% resolution_m = 50;
+% dem = salvador_dem_read('', resolution_m, 1);
+% load([climada_global.project_dir filesep 'centroids_LS_10m_rectangle_canas'])
+% centroids = centroids_TWI(centroids,1);
+% centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+5;
+% [hazard_LS, hazard_RF]  = climada_ls_hazard_set(centroids,'');
+hazard_all_events = full(nansum(hazard.intensity));
+is_event = hazard_all_events<0 | hazard_all_events>0;
+sum(is_event)
+hazard.lon = hazard.lon(is_event);
+hazard.lat = hazard.lat(is_event);
+hazard.centroid_ID = 1:numel(hazard.lat);
+hazard.elevation_m = hazard.elevation_m(is_event);
+hazard.intensity = hazard.intensity(:,is_event);
+hazard.event_ID = 1:sum(is_event);
+hazard.orig_event_flag = ones(size(hazard.event_ID));
+hazard = rmfield(hazard,'source');
+hazard = rmfield(hazard,'deposit');
+hazard = rmfield(hazard,'slide_ID');
+hazard = rmfield(hazard,'factor_of_safety');
+save([climada_global.project_dir filesep 'hazard_LS_canas'],'hazard');
+
+
+% the 10 most severe events
+event_sum = sum(abs(hazard.intensity) >0,2);
+[~,sort_ndx] = sort(event_sum,'descend');
+is_event = sort_ndx(1:10);
+hazard.orig_event_count = numel(is_event);
+hazard.event_count = numel(is_event);
+hazard.event_ID = 1:numel(is_event);
+hazard.orig_event_flag = ones(size(hazard.event_ID));
+hazard.yyyy = hazard.yyyy(is_event);
+hazard.mm = hazard.mm(is_event);
+hazard.dd = hazard.dd(is_event);
+hazard.datenum = hazard.datenum(is_event);
+hazard.frequency = hazard.frequency(is_event);
+hazard.intensity = hazard.intensity(is_event,:);
+
+
+% encode ls intensity hazard to ditance hazard
+% load entity
+entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
+load(entity_filename)
+is_valid = ~(isnan(entity.assets.lon));
+entity.assets.lon = entity.assets.lon(is_valid);
+entity.assets.lat = entity.assets.lat(is_valid);
+entity.assets.Category = entity.assets.Category(is_valid);
+entity.assets.Value = entity.assets.Value(is_valid);
+entity.assets.Deductible = entity.assets.Deductible(is_valid);
+entity.assets.Cover = entity.assets.Cover(is_valid);
+entity.assets.DamageFunID = entity.assets.DamageFunID(is_valid);
+entity.assets.Value_unit = entity.assets.Value_unit(is_valid);
+entity.assets.Value_Unit = entity.assets.Value_Unit(is_valid);
+entity.assets.centroid_index = entity.assets.centroid_index(is_valid);
+
+
+hazard_distance = climada_hazard_encode_distance(hazard,entity,1000);
+hazard_distance = rmfield(hazard_distance,'elevation_m');
+hazard_distance.intensity(isnan(hazard_distance.intensity)) = 0;
+% hazard_distance.intensity_ori = hazard_distance.intensity;
+% hazard_distance.intensity = hazard_distance.distance_m;
+hazard_distance.intensity = hazard_distance.intensity_ori;
+figure
+climada_hazard_plot(hazard_distance,5)
+
+EDS = climada_EDS_calc(entity,hazard_distance,'LS_2015',1);
+
+figure
+plotclr(entity.assets.lon, entity.assets.lat, EDS.ED_at_centroid,'','',1)
+hold on
+plot(entity.assets.lon, entity.assets.lat,'.k')
+
+
+
+%% create landslide susceptibility map 
 %  - based on FS (factor of safety = strength/stress)
 
 
@@ -41,8 +469,8 @@ centroids.TWI (centroids.TWI_ori>6) = 10;
 % centroids_TWI does not work correctly, several lines of nans and zeros appear
 % fill nan and zero gaps in slope_deg vector, fill with random variables,
 % to have nice plots
-centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+10;
-centroids.slope_deg(centroids.slope_deg_ori==0) = rand(sum(centroids.slope_deg_ori==0),1)*4+3;
+centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+5;
+% centroids.slope_deg(centroids.slope_deg_ori==0) = rand(sum(centroids.slope_deg_ori==0),1)*4+3;
 
 % save centroids Landslides on a 100 m resolution
 save([salvador_data_dir filesep 'centroids_LS_100m'], 'centroids')
@@ -77,9 +505,10 @@ save([salvador_data_dir filesep 'hazard_LS_centroids'], 'hazard', 'centroids')
 %% create figure: landslide susceptibility map
 % miv = 0.01;
 % mav = 55;
+hazard = centroids;
 fig = climada_figuresize(0.8, 1);
 % plotclr(hazard.lon, hazard.lat, centroids.TWI,'s',4,1,3,10,flipud(cmap(1:11,:)));title('Topographical wetness index')
-% plotclr(hazard.lon, hazard.lat, centroids.slope_deg,'s',4,1,'',30,flipud(cmap(1:11,:)));title('Slope')
+plotclr(hazard.lon, hazard.lat, centroids.slope_deg,'s',4,1,'',30,flipud(cmap(1:11,:)));title('Slope')
 % plotclr(hazard.lon, hazard.lat, centroids.elevation_m,'s',4,1,'','',flipud(cmap(1:11,:)))
 % plotclr(hazard.lon, hazard.lat, hazard.factor_of_safety,'s',4,1,miv,40,cmap);title('Factor of safety')
 % plot3(hazard.lon(centroids.TWI>6), hazard.lat(centroids.TWI>6),ones(size(hazard.lat(centroids.TWI>6)))*1000,'xk')
@@ -244,21 +673,34 @@ hazard.peril_ID          = 'FS'; %factor of safety
 
 
 
-%% create centroids from DEM, 100m resolution
-load([climada_global.data_dir filesep 'system' filesep 'dem_san_salvador_10m_full_shift'])
+%% create centroids from DEM, 10m resolution
+load([climada_global.project_dir filesep 'system' filesep 'dem_san_salvador_10m_full_shift'])
 centroids.lon = dem.lon;
 centroids.lat = dem.lat;
 centroids.elevation_m = dem.value;
 centroids.elevation_m(centroids.elevation_m == 0) = 500;
 % filter out values that are not in the polygon_LS
-inpoly_indx = inpoly([centroids.lon' centroids.lat'],[polygon_LS.lon polygon_LS.lat]);
+% inpoly_indx = inpoly([centroids.lon' centroids.lat'],[polygon_LS.lon polygon_LS.lat]);
+inpoly_indx = inpoly([centroids.lon' centroids.lat'],[rectangle_canas.lon' rectangle_canas.lat']);
 centroids.lon(~inpoly_indx) = [];
 centroids.lat(~inpoly_indx) = [];
 centroids.elevation_m(~inpoly_indx) = [];
 centroids.centroid_ID = 1:numel(centroids.lat);
 centroids.onLand = ones(size(centroids.lon));
-save([salvador_data_dir filesep 'centroids_LS_100m'], 'centroids')
+centroids.admin0_ISO3 = 'SLV'; 
+% save([salvador_data_dir filesep 'centroids_LS_100m'], 'centroids')
+save([climada_global.project_dir filesep 'centroids_LS_10m_rectangle_canas'], 'centroids')
+load([climada_global.project_dir filesep 'centroids_LS_10m_rectangle_canas'])
 
+% DEM 50m resolution
+[dem, resolution_m] = salvador_dem_read('', 50, 1);
+save([climada_global.project_dir filesep 'centroids_LS_50m_rectangle_canas'], 'centroids')
+load([climada_global.project_dir filesep 'centroids_LS_50m_rectangle_canas'])
+
+centroids = centroids_TWI(centroids,1);
+centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+5;
+
+[hazard_LS, hazard_RF]  = climada_ls_hazard_set(centroids,'');
 
 
 %% create centroids for san salvador LS, 100 m resolution ~0.001°
@@ -281,13 +723,14 @@ centroids.onLand = ones(size(centroids.lon));
 load([climada_global.project_dir filesep 'system' filesep 'Salvador_dem_10m_20150729'])
 % load([climada_global.project_dir filesep 'system' filesep 'dem_san_salvador_10m_full_shift'])
 
-% % only use dem values that are close to the hazard
+% only use dem values that are close to the hazard
 % indx_valid = inpoly([dem.lon' dem.lat'],[polygon_LS.lon polygon_LS.lat]);
-% % sum(indx_valid)
-% % plot(dem.lon(indx_valid),dem.lat(indx_valid),'.')
-% dem.lon     = dem.lon(indx_valid);
-% dem.lat     = dem.lat(indx_valid);
-% dem.value   = dem.value(indx_valid);
+indx_valid = inpoly([dem.lon' dem.lat'],[rectangle_canas.lon' rectangle_canas.lat']);
+% sum(indx_valid)
+% plot(dem.lon(indx_valid),dem.lat(indx_valid),'.')
+dem.lon     = dem.lon(indx_valid);
+dem.lat     = dem.lat(indx_valid);
+dem.value   = dem.value(indx_valid);
 
 % find nearest neighbour and this dem value
 [indx, distance_m] = knnsearch([dem.lon' dem.lat'],[centroids.lon' centroids.lat'],'Distance',@climada_geo_distance_2);
@@ -314,6 +757,65 @@ shape_plotter(shapes(indx_salvador))
 plot3(polygon_LS.lon_shift, polygon_LS.lat_shift,ones(size(polygon_LS.lat_shift))*3000, '-b');
 % plot3(polygon_LS.lon, polygon_LS.lat,ones(size(polygon_LS.lat))*4000, '-r');
 
+
+plot3(entity.assets.lon, entity.assets.lat, ones(size(entity.assets.lon))*3000, 'xk')
+delta_lon = 0.01;
+lon_min = min(entity.assets.lon)-delta_lon;
+lon_max = max(entity.assets.lon)+delta_lon;
+lat_min = min(entity.assets.lat)-delta_lon;
+lat_max = max(entity.assets.lat)+delta_lon;
+rectangle_canas.lon = [lon_min lon_max lon_max lon_min lon_min];
+rectangle_canas.lat = [lat_min lat_min lat_max lat_max lat_min];
+figure
+plot3(rectangle_canas.lon, rectangle_canas.lat, ones(size(rectangle_canas.lon))*3000, '-or')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%
+
+figure
+hold on
+% plotclr(centroids.lon, centroids.lat, centroids.elevation_m, '','',1,400,1000);
+% plotclr(centroids.lon, centroids.lat, centroids.slope_deg, 's',4,1,0,30);
+plotclr(centroids.lon, centroids.lat, centroids.TWI, 's',4,1,3,10);
+axis([])
+
+
+
+event_sum = sum(abs(hazard.intensity) >0,2);
+[~,sort_ndx] = sort(event_sum,'descend');
+max_event_all = sort_ndx(1:10);
+  
+for i = 1:10
+    max_event = max_event_all(i); %58
+    figure
+    hold on
+    % plotclr(hazard.lon, hazard.lat, hazard.intensity(max_event,:), '','',1);%,400,1000);
+    is_positive = hazard.intensity(max_event,:)>0;
+    is_negative = hazard.intensity(max_event,:)<0;
+    % plotclr(hazard.lon, hazard.lat, hazard.intensity(max_event,:), '','',1);%,400,1000);
+    hold on
+    plot(hazard.lon(is_positive), hazard.lat(is_positive),'sk');
+    plot(hazard.lon(is_negative), hazard.lat(is_negative),'sr');
+    title(sprintf('Event %d',max_event))
+end
 
 % shift_x = +0.01/5;
 % % shift_y = -0.01/2;
