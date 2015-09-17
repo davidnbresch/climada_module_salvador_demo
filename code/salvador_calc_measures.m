@@ -26,7 +26,7 @@ if ~exist('results_dir', 'var'), results_dir = ''; end
 
 
 % PARAMETERS
-if isempty(nametag), nametag='unknown';end
+if isempty(nametag), nametag = 'unknown'; end
 if isempty(results_dir), results_dir =[climada_global.project_dir filesep sprintf('%s_',datestr(now,'YYYYmmdd')) nametag];end
 
 
@@ -70,12 +70,14 @@ switch peril_ID
             % consultant_data_damage_fun_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150811_TC'];
         end
         if isempty(measures_file)
-            measures_file = ['20150909' filesep 'Medidas parametrizadas_2m_150908 aumentada precio mejorad y mantenimiento.xlsx'];
+            measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_2.xls'];
+            %measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+            % measures_file = ['20150909' filesep 'Medidas parametrizadas_2m_150908 aumentada precio mejorad y mantenimiento.xlsx'];
             % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150818'];
             % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150828'];
             % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150901'];
             % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150903'];
-            %consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150909'];
+            % consultant_data_measures_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep 'measures' filesep '20150909'];
         end
         %entity_file_xls = [consultant_data_entity_dir filesep 'entity_AMSS_NEW.xls'];
     case 'LS'
@@ -100,7 +102,15 @@ max_distance_to_hazard = 20;
 entity = climada_assets_encode(entity,hazard,max_distance_to_hazard);
 force_re_encode = 0;
 
+% read damagefunctions
 entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
+
+% check damage functions are defined for the given hazard intensity range
+silent_mode= 1;
+entity_out = climada_damagefunctions_check(entity,hazard,silent_mode);
+entity.damagefunctions = entity_out.damagefunctions;
+
+% read measures
 entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
 
 % entity.damagefunctions = climada_damagefunctions_read([consultant_data_damage_fun_dir filesep 'DamageFunction_FL_2ndRUN.xlsx']);
