@@ -18,7 +18,7 @@ function EDS=salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir
 %hardwired to:
 %FL=Salvador_hazard_FL_2015,    entity_AMSS_NEW.xls,            DamageFunction_150910.xlsx    
 %LS=hazard_distance,            entity_AMSS_DESLIZAMIENTO.xlsx, entity_AMSS_DESLIZAMIENTO.xlsx
-%TC=Salvador_hazard_TC_2015,    entity_AMSS_NEW.xls,            entity_AMSS_WIND-10ms.xlsx    
+%TC=Salvador_hazard_TC_2015,    entity_AMSS_WIND_NEW.xls,            entity_AMSS_WIND-10ms.xlsx    
 
 
 % set initial parameters
@@ -78,7 +78,7 @@ if peril_ID=='TC'
     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_extreme_cc'],'hazard'); 
 end
 
-%% Create future hazards LS 
+%% Create future hazards LS with climate screw
 if peril_ID=='LS'
     salvador_LS_screw;
     %moderate
@@ -131,7 +131,7 @@ switch peril_ID
            assets_file = ['20150806_LS' filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
         end 
                 if isempty(damfun_file)
-            damfun_file = ['20150806_LS' filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
+            damfun_file = ['damage_functions' filesep 'entity_AMSS_DESLIZAMIENTO_NEW.xlsx'];
         end
            %damfun_file = ['20150811_TC' filesep 'entity_AMSS_WIND-10ms.xlsx'];
 %         consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity' filesep '20150806_LS'];
@@ -139,7 +139,7 @@ switch peril_ID
         
     case 'TC'
         if isempty(assets_file)
-            assets_file = ['20150721' filesep 'entity_AMSS_NEW.xls'];
+            assets_file = ['20150917' filesep 'entity_AMSS_WIND_NEW.xlsx'];
         end
         if isempty(damfun_file)
             damfun_file = ['20150811_TC' filesep 'entity_AMSS_WIND-10ms.xlsx'];
@@ -161,13 +161,15 @@ switch peril_ID
     case 'TC'
         entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
         entity.assets.reference_year = 2015;
-        entity.assets = rmfield(entity.assets,'VALNaN');
+        if isfield(entity.assets,'VALNaN')
+            entity.assets = rmfield(entity.assets,'VALNaN');
+        end
         entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
         entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_no_measures' peril_ID '.mat'];
         entity.assets.filename = entity_filename;
     
     case 'LS'
-                 entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
+        entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
         entity.assets.reference_year = 2015;
         entity.assets = rmfield(entity.assets,'VALNaN');
         entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
@@ -220,7 +222,7 @@ EDS(4) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 % set annotations
 EDS(1).hazard.comment = sprintf('%s, 2015 ',peril_ID);
-EDS(2).hazard.comment = sprintf('%s, 2040, econ grwoth',peril_ID);
+EDS(2).hazard.comment = sprintf('%s, 2040, econ growth',peril_ID);
 EDS(3).hazard.comment = sprintf('%s, 2040, moderate cc',peril_ID);
 EDS(4).hazard.comment = sprintf('%s, 2040, extreme cc',peril_ID);
 EDS(1).reference_year = 2015;
