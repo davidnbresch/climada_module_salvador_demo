@@ -17,7 +17,7 @@
     
     %increase global mean maximum wind speed (intensity)
     screw_mod(3).hazard_fld         = 'intensity';
-    screw_mod(3).change             = 1.00;
+    screw_mod(3).change             = 1.01;
     screw_mod(3).year               = 2040;
     screw_mod(3).hazard_crit        = 'category';
     screw_mod(3).criteria           = [0 1 2 3 4 5];
@@ -42,7 +42,7 @@
     
     %increase global mean maximum wind speed (intensity)
     screw_ext(3).hazard_fld         = 'intensity';
-    screw_ext(3).change             = 1.01;
+    screw_ext(3).change             = 1.02;
     screw_ext(3).year               = 2040;
     screw_ext(3).hazard_crit        = 'category';
     screw_ext(3).criteria           = [0 1 2 3 4 5];
