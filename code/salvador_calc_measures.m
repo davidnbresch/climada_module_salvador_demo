@@ -1,6 +1,23 @@
 function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
+% calculate measures for salvador FL (for now)
+% NAME:
+%   salvador_calc_measures
+% PURPOSE:
+%   calc measures and save reports and figures in a newly created directory
+%   in results/...
+% CALLING SEQUENCE:
+%   salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
+% EXAMPLE:
+%   salvador_calc_measures('FL_v2',assets_file,damfun_file,measures_file,'20150922_measures_FL_v2')
+% INPUTS:
+% OPTIONAL INPUT PARAMETERS:
+% OUTPUTS:
+%   reports and figures 
+% MODIFICATION HISTORY:
+% Lea Mueller, muellele@gmail.com, 20150910, init
+% Lea Mueller, muellele@gmail.com, 20150921, use new assets for FL
+%-
 
-%% salvador risk calculations
 
 % peril_ID = 'LS';
 peril_ID = 'FL';
@@ -62,7 +79,8 @@ consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'con
 switch peril_ID
     case 'FL'
         if isempty(assets_file)
-            assets_file = ['20150721' filesep 'entity_AMSS_NEW.xls'];
+            assets_file = ['20150916' filesep 'entity_AMSS_FL_TC.xls'];
+            % assets_file = ['20150721' filesep 'entity_AMSS_NEW.xls'];
         end
         if isempty(damfun_file)
             damfun_file = ['20150910' filesep 'DamageFunction_150910.xlsx'];

@@ -1,8 +1,17 @@
 
-nametag = 'p_2nd_run';
+nametag = 'regional_scope_of_measures_A_B_2';
 assets_file= '';
 damfun_file = '';
-measures_file = ['20150909' filesep 'medidas selection'];
+measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_2.xls'];
+% measures_file = ['20150909' filesep 'medidas selection'];
+results_dir = '';
+salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
+
+nametag = 'regional_scope_of_measures_A_B_1';
+assets_file= '';
+damfun_file = '';
+measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+% measures_file = ['20150909' filesep 'medidas selection'];
 results_dir = '';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
 
@@ -276,7 +285,7 @@ EDS = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 % timehorizon = 2015;
 % peril_ID    = 'FL';
 ED_filename = sprintf('ED_%s_%d_cc_%s_%s.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
-climada_EDS_ED_at_centroid_report_xls(EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
+climada_EDS_ED_at_centroid_report_xls(EDS,[climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
 output_report = salvador_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
 % output_report = salvador_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
 

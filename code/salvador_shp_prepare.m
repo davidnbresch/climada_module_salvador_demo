@@ -127,7 +127,7 @@ plot(poygon_rio_acelhuate.lon, poygon_rio_acelhuate.lat,'-.c');
 
 %% save shp results
 % save([salvador_module_system_dir filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rios','indx_rios_in_San_Salvador','polygon_LS','polygon_rio_acelhuate')
-save([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rivers','shape_roads','indx_rivers_in_San_Salvador', 'indx_roads_in_San_Salvador','polygon_LS','polygon_rio_acelhuate','polygon_ilopango','rectangle_canas','polygon_canas')
+save([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'],'shapes','shape_rivers','shape_roads','indx_rivers_in_San_Salvador', 'indx_roads_in_San_Salvador','polygon_LS','polygon_rio_acelhuate','polygon_ilopango','rectangle_canas','polygon_canas','polygon_acelhuate')
 
 
 
