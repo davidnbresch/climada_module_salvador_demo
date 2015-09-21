@@ -23,6 +23,7 @@ function climada_figure_scale_add(fig_axes,top_corner,right_corner)
 % Lea Mueller, muellele@gmail.com, 20150724, init
 % Lea Mueller, muellele@gmail.com, 20150729, return if x_tick is empty
 % Lea Mueller, muellele@gmail.com, 20150729, add option for utm (no conversion to lat/lon)
+% Lea Mueller, muellele@gmail.com, 20150729, limit top_corner and right_corner to maximum number of tick elements
 %-
 
 
@@ -54,6 +55,8 @@ else
     scale_text = sprintf('%2.1f km', abs(xticks(1)-xticks(2))/1000);
 end
 hold on
+if right_corner>=numel(xticks)-1, right_corner = numel(xticks)-1;end
+if top_corner>=numel(yticks)-1, top_corner = numel(yticks)-1;end
 plot(xticks(end-right_corner:end-(right_corner-1)), ones(2,1)*yticks(end-top_corner),'-k','linewidth',3)
 text(mean(xticks(end-right_corner:end-(right_corner-1))), yticks(end-top_corner),scale_text,...
     'verticalalignment','bottom','HorizontalAlignment','center','fontsize',14)
