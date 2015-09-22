@@ -210,8 +210,11 @@ for u_i = 1:numel(unit_list)
     print(fig,'-dpdf',[results_dir filesep pdf_filename])
     %print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
     
+    % Jacob, please set xlim_value according to maximum benefit or costs if
+    % measures 1 are calculated, otherwise set to empty
+    xlim_value = '';
     sort_measures = 1;
-    fig = climada_adaptation_bar_chart(measures_impact_both(u_i),'',sort_measures);
+    fig = climada_adaptation_bar_chart(measures_impact_both(u_i),'',sort_measures,'','',1,'','','',xlim_value);
     pdf_filename = sprintf('Adaptation_bar_chart_%s_2015_sorted_%s_%s.pdf',measures_impact_both(u_i).peril_ID,measures_impact_both(u_i).Value_unit,nametag);
     print(fig,'-dpdf',[results_dir filesep pdf_filename])
     %print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
