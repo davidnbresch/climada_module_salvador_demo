@@ -34,7 +34,10 @@ function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file
 % Lea Mueller, muellele@gmail.com, 20150831, enhance to cope with multiple EDS
 % Lea Mueller, muellele@gmail.com, 20150910, enhance to cope with Category names (cell) instead of numbers
 % Lea Mueller, muellele@gmail.com, 20150915, add assets_flag to write out sum of entity.assets.Value per category, as specified in EDS(EDS_i).assets.filename
+% Lea Mueller, muellele@gmail.com, 20150922, add filenames (entity.assets, entity.damagefunctions, entity.discount, entity.measures and EDS.hazard)
 %-
+
+output_report = []; %init
 
 global climada_global
 if ~climada_init_vars,return;end % init/import global variables
@@ -129,9 +132,10 @@ entity_ori = entity;
 header_row    = 1;
 static_column_no = 6;
 output_report = cell(numel(category_criterium)+numel(unit_list)+header_row,static_column_no);
+no_filename_rows = 5;
 
 % additional information below the table
-row_no = numel(category_criterium)+numel(unit_list)+6;
+row_no = numel(category_criterium)+numel(unit_list)+no_filename_rows+7;
 output_report{row_no+1,1} = 'Further information';
 output_report{row_no+2,1} = 'AED';
 output_report{row_no+2,2} = ' = Annual expected damage';
@@ -183,6 +187,43 @@ end
 %     if any(EDS(e_i).assets.Value ~= EDS(1).assets.Value),    single_Value_col = 0;   end
 % %     sim_ndx = sim_ndx & (EDS(e_i).assets.filename == EDS(1).assets.filename);
 % end
+
+% loop over EDS to get filenames (assets, damagefunctions, discount,
+% measures, hazard)
+start_row = header_row+numel(category_criterium)+numel(unit_list)+3;
+all_filenames = {'entity.assets', 'entity.damagefunctions', 'entity.discount', 'entity.measures' 'EDS.hazard'};
+no_folders = 1;
+output_report{start_row,1} = 'Filenames';
+for f_i = 1:numel(all_filenames)
+    output_report{start_row+f_i,1} = all_filenames{f_i};
+end
+for EDS_i = 1:EDS_no
+    column_position = static_column_no + (EDS_i-1)*variable_column_no;
+    
+    if assets_flag
+    % load entity as specified in EDS.assets.filename
+        if exist(EDS(EDS_i).assets.filename,'file')
+            load(EDS(EDS_i).assets.filename)
+            [pathstr, name, ext] = fileparts(EDS(EDS_i).assets.filename);
+            fprintf('Load new entity (%s) to include asset values.\n',name)
+        end
+    else
+        entity = entity_ori;
+    end %assets_flag
+    
+    for f_i = 1:numel(all_filenames)
+        if strcmp(all_filenames{f_i},'EDS.hazard')
+            filename = EDS(EDS_i).hazard.filename;
+        else
+            filename = getfield(eval(all_filenames{f_i}),'filename');
+        end
+        filesep_position = strfind(filename,filesep);
+        if no_folders>=numel(filesep_position)-1
+            no_folders = numel(filesep_position)-1;
+        end
+        output_report{start_row+f_i,column_position+1} = filename(filesep_position(end-no_folders):end);
+    end
+end
 
 % loop over EDS (mutliple measures, the end measure is the baseline/control scenario)
 for EDS_i = 1:EDS_no
@@ -244,6 +285,19 @@ end
 
 if unit_on
     for EDS_i = 1:EDS_no
+        
+        if assets_flag
+            % load entity as specified in EDS.assets.filename
+            if exist(EDS(EDS_i).assets.filename,'file')
+                load(EDS(EDS_i).assets.filename)
+                [pathstr, name, ext] = fileparts(EDS(EDS_i).assets.filename);
+                fprintf('Load new entity (%s) to include asset values.\n',name)
+            end
+        else
+            entity = entity_ori;
+        end %assets_flag
+    
+        % loop over different units
         for u_i = 1:numel(unit_list)
             [is_selected,peril_criterum,unit_criterium,category_criterium] =...
                 climada_assets_select(entity,EDS(EDS_i).peril_ID,unit_list{u_i},'');
@@ -276,12 +330,14 @@ if unit_on
                 end % benefit_flag
                 
                 if assets_flag
-                    output_report{c_i+u_i+1+1,column_position+1+1} = num2cell(sum(entity.assets.Value(is_selected)));
-                end %assets_flag
-            end  
-        end
-    end
-end
+                    output_report(c_i+u_i+1+1,column_position+1+1) = num2cell(sum(entity.assets.Value(is_selected)));
+                end %assets_flag           
+            end %any(is_selected)  
+        end %unit_i    
+    end %EDS_i
+end %unit_on
+
+
 
 
 % do not save in an xls_file
