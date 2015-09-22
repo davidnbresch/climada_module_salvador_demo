@@ -18,11 +18,23 @@ salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir
 nametag = 'v0';
 growth_rate_eco =  '';
 growth_rate_people = '';
-results_dir = 'LS_acelhuate_v3';
+results_dir = 'LS_acelhuate_v6';
 assets_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
-damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xlsx'];
-salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,'LS_acelhuate')
+damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,'LS_acelhuate');
 % EDS=salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID)
+
+
+nametag = '';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = 'FL_new_format';
+assets_file = '';
+damfun_file = '';
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,'FL');
+% EDS=salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID)
+
+
 
 %% salvador risk calculations
 
