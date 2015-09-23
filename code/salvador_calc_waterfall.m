@@ -147,7 +147,7 @@ switch peril_ID
     case 'FL'
         load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
         if isempty(assets_file)
-            assets_file = ['20150916' filesep 'entity_AMSS_FL_TC.xls'];
+            assets_file = ['20150916_FL' filesep 'entity_AMSS_FL.xls'];
         end
         if isempty(damfun_file)
             damfun_file = ['20150910' filesep 'DamageFunction_150910.xlsx'];
@@ -156,7 +156,7 @@ switch peril_ID
     case 'TC'
         load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
         if isempty(assets_file)
-            assets_file = ['20150917' filesep 'entity_AMSS_WIND_NEW.xlsx'];
+            assets_file = ['20150917_TC' filesep 'entity_AMSS_WIND_NEW.xlsx'];
         end
         if isempty(damfun_file)
             damfun_file = ['20150811_TC' filesep 'entity_AMSS_WIND-10ms.xlsx'];
@@ -166,7 +166,7 @@ switch peril_ID
         %peril_ID = 'LS';
         load([climada_global.project_dir filesep 'Salvador_hazard_LS_distance_2015_acelhuate'])
         if isempty(assets_file)
-           assets_file = ['20150806_LS' filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
+           assets_file = ['20150806_LS_las_canas' filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
         end 
         if isempty(damfun_file)
             damfun_file = ['damage_functions' filesep 'entity_AMSS_DESLIZAMIENTO_NEW.xlsx'];
