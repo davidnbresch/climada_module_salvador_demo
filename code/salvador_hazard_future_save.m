@@ -86,7 +86,7 @@ if strcmp(peril_ID,'LS_las_canas') | strcmp(peril_ID,'LS_acelhuate') | strcmp(pe
         fprintf('Hazard exists already (%s)\n', hazard_set_file_moderate_cc)
     end
     
-    if ~exist([climada_global.project_dir filesep hazard_set_file_moderate_cc],'file') 
+    if ~exist([climada_global.project_dir filesep hazard_set_file_extreme_cc],'file') 
         % create extreme cc 2040 if not exist
         % load today's hazard
         load([climada_global.project_dir filesep hazard_set_file])

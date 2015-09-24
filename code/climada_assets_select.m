@@ -1,4 +1,4 @@
-function [is_selected,peril_criterum,unit_criterium,category_criterium] = climada_assets_select(entity,peril_criterum,unit_criterium,category_criterium)
+function [is_selected,peril_criterum,unit_criterium,category_criterium] = climada_assets_select(entity,peril_criterum,unit_criterium,category_criterium,silent_mode)
 %  Create a selection array to select a subset of asset locations
 % MODULE:
 %   salvador_demo
@@ -19,11 +19,13 @@ function [is_selected,peril_criterum,unit_criterium,category_criterium] = climad
 %   peril_criterum: a string, e.g. 'FL' or 'TC'
 %   unit_criterium: a string, e.g. 'USD' or 'people'
 %   category_criterium: a string or a number, e.g. 7
+%   silent_mode: set to 1 if no fprintf output
 % OUTPUTS:
 %   is_selected   : a logical array that points to the selected asset locations
 %   peril_criterum: a string or a cell, e.g. 'FL' or 'TC'
 %   unit_criterium: a string or a cell, e.g. 'USD' or 'people'
 %   category_criterium: a string, cell or a number, e.g. 7
+
 % MODIFICATION HISTORY:
 % Lea Mueller, muellele@gmail.com, 20150730, init
 % Lea Mueller, muellele@gmail.com, 20150731, add outputs for criteria, e.g. if select only
@@ -31,6 +33,7 @@ function [is_selected,peril_criterum,unit_criterium,category_criterium] = climad
 % Lea Mueller, muellele@gmail.com, 20150831, rename to climada_assets_select
 % Lea Mueller, muellele@gmail.com, 20150910, reshape selection vectors so that dimensions match
 % Lea Mueller, muellele@gmail.com, 20150910, enhance to cope with Category names (cell) instead of numbers
+% Lea Mueller, muellele@gmail.com, 20150924, add silent_mode option
 % -
 
 
@@ -39,12 +42,14 @@ if ~exist('entity'            ,'var'), entity             = []; end
 if ~exist('peril_criterum'    ,'var'), peril_criterum     = []; end
 if ~exist('unit_criterium'    ,'var'), unit_criterium     = []; end
 if ~exist('category_criterium','var'), category_criterium = []; end
+if ~exist('silent_mode','var'), silent_mode = ''; end
 
 % prompt for entity if not given
 if isempty(entity            ), entity             = climada_entity_load; end
 if isempty(peril_criterum    ), peril_criterum     = ''; end    
 if isempty(unit_criterium    ), unit_criterium     = ''; end 
 if isempty(category_criterium), category_criterium = ''; end 
+if isempty(silent_mode), silent_mode = 0; end 
 
 is_selected = logical(entity.assets.lon); %init
 is_unit     = logical(entity.assets.lon);
@@ -141,11 +146,13 @@ if isnumeric(category_criterium)
 else
     category_criterium_str = category_criterium;
 end
-           
-if print_cat
-    fprintf('%d locations selected (%s, %s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str, category_criterium_str)
-else
-    fprintf('%d locations selected (%s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str)
+        
+if ~silent_mode
+    if print_cat
+        fprintf('%d locations selected (%s, %s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str, category_criterium_str)
+    else
+        fprintf('%d locations selected (%s, %s)\n',sum(is_selected),peril_criterum_str, unit_criterium_str)
+    end
 end
 
 

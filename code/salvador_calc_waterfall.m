@@ -5,20 +5,19 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 %   - for San Salvador 
 %   - salvador_calc_waterfall.m
 %   - calculate EDS for today, economic development,
-%   2040 moderate and 2040 extreme cc
+%     2040 moderate and 2040 extreme cc
 %   - for USD and for people
-% peril_description = {'flood in Rio Acelhuate' 'hurricane winds in AMSS' 'landslides in Ilopango'};
-
 %Example
 % EDS=salvador_calc_waterfall_2('','','','','','','TC');
-
 %Input parameter
 % peril_ID = 'LS','FL','TC' ;
+%
+% MODIFICATION HISTORY:
+% Lea Mueller, 20150901, init
+% Lea Mueller, 20150924, cleanup and add new functions (salvador_entity_files_set, salvador_entity_future_create, salvador_hazard_future_save) 
+% Lea Mueller, 20150924, add diary_file
+%-
 
-%hardwired to:
-%FL=Salvador_hazard_FL_2015,    entity_AMSS_NEW.xls,            DamageFunction_150910.xlsx    
-%LS=hazard_distance,            entity_AMSS_DESLIZAMIENTO.xlsx, entity_AMSS_DESLIZAMIENTO.xlsx
-%TC=Salvador_hazard_TC_2015,    entity_AMSS_WIND_NEW.xls,            entity_AMSS_WIND-10ms.xlsx    
 
 EDS = []; %init
 
@@ -31,7 +30,6 @@ timehorizon = 2015;
 force_re_encode = 1;
 climada_global.present_reference_year = 2015;
 climada_global.future_reference_year = 2040;
-
 
 % poor man's version to check arguments
 if ~exist('nametag', 'var'), nametag = ''; end
@@ -59,94 +57,48 @@ end
 % create results dir
 if ~exist(results_dir,'dir')
     mkdir(results_dir)
+    diary_file = [results_dir filesep sprintf('Diary_waterfall_%s_%s.csv',peril_ID,datestr(now,'YYYYmmdd'))];
+    diary(diary_file)
     fprintf('New results directory created.\n')
 else
     fprintf('This directoy already exists. Please use another name.\n')
     return
 end
 
-%% Hazard selection
+
+% load shp files
+load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
+
+% Hazard selection
 annotation_name = sprintf('%s, %s climate change',peril_ID,cc_scenario);
-hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
+hazard_set_file = sprintf('Salvador_hazard_%s_%d.mat', peril_ID, timehorizon);
+% load hazard
+load([climada_global.project_dir filesep hazard_set_file])
+hazard.reference_year = climada_global.present_reference_year;
 
 % create and save future cc hazards (TC, LS_las_canas and LS_acelhuate)
 if strcmp(peril_ID,'TC') | strcmp(peril_ID,'LS_las_canas') | strcmp(peril_ID,'LS_acelhuate') | strcmp(peril_ID,'LS')
     salvador_hazard_future_save(peril_ID)
 end
 
-% %% Create future hazards TC with climate screw
-% if strcmp(peril_ID,'TC')
-%     salvador_TC_screw;
-%     %moderate
-%     load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
-%     hazard.reference_year = climada_global.present_reference_year;
-%     hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',climada_global.future_reference_year,screw_mod);
-%     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_moderate_cc'],'hazard');
-%     
-%     %extreme
-%     load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
-%     hazard.reference_year = 2040;
-%     hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',2040,screw_ext);
-%     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_extreme_cc'],'hazard'); 
-% end
-
 
 %% Entity selection
 consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
-switch peril_ID
-    case 'FL'
-        load([climada_global.project_dir filesep 'Salvador_hazard_FL_2015'])
-        if isempty(assets_file)
-            assets_file = ['20150916_FL' filesep 'entity_AMSS_FL.xls'];
-        end
-        if isempty(damfun_file)
-            damfun_file = ['20150910_FL' filesep 'DamageFunction_150910.xlsx'];
-        end
+measures_file= '';
+[assets_file, damfun_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID);
 
-    case 'TC'
-        load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
-        if isempty(assets_file)
-            assets_file = ['20150917_TC' filesep 'entity_AMSS_WIND_NEW.xlsx'];
-        end
-        if isempty(damfun_file)
-            damfun_file = ['20150811_TC' filesep 'entity_AMSS_WIND-10ms.xlsx'];
-        end  
-        
-    case 'LS_las_canas'
-        %peril_ID = 'LS';
-        load([climada_global.project_dir filesep 'Salvador_hazard_LS_distance_2015_acelhuate'])
-        if isempty(assets_file)
-           assets_file = ['20150806_LS_las_canas' filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
-        end 
-        if isempty(damfun_file)
-            damfun_file = ['damage_functions' filesep 'entity_AMSS_DESLIZAMIENTO_NEW.xlsx'];
-        end
-        
-    case 'LS_acelhuate'
-        %peril_ID = 'LS';
-        load([climada_global.project_dir filesep hazard_set_file])
-        if isempty(assets_file)
-           assets_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
-        end 
-        if isempty(damfun_file)
-            damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
-        end
-end
-hazard.reference_year = climada_global.present_reference_year;
-
-% load shp files
-load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
-
-
-%% read entity
+% read entity
 % entity today
 entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
 entity.assets.reference_year = climada_global.present_reference_year;
 if isfield(entity.assets,'VALNaN'), entity.assets = rmfield(entity.assets,'VALNaN');end
 entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
+entity = climada_damagefunctions_check(entity,hazard,0);
+entity.measures.filename = '';
 entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
 entity.assets.filename = entity_filename;
 save(entity_filename,'entity')
+
 
 %% calculate waterfall graph
 n_years = climada_global.future_reference_year - climada_global.present_reference_year+1;
@@ -155,11 +107,11 @@ clear EDS % init
 
 % encode to 20 m if peril FL
 if strcmp(peril_ID,'FL')
-    max_distance_to_hazard = 20;
+    climada_global.max_distance_to_hazard = 20;
 else
-    max_distance_to_hazard = 10000;
+    climada_global.max_distance_to_hazard = 1000;
 end
-entity = climada_assets_encode(entity,hazard,max_distance_to_hazard);
+entity = climada_assets_encode(entity,hazard,climada_global.max_distance_to_hazard);
 force_re_encode = 0;
 
 % risk today
@@ -170,25 +122,9 @@ entity_ori = entity;
 
 % 2040, economic growth
 % create future entity
-entity_future = salvador_entity_future_create(entity, growth_rate_eco, growth_rate_people,hazard.peril_ID);
+entity = salvador_entity_future_create(entity, growth_rate_eco, growth_rate_people,hazard.peril_ID);
 annotation_name = 'Economic growth';
-EDS(2) = climada_EDS_calc(entity_future,hazard,annotation_name,force_re_encode);
-
-% % USD  
-% growth_factor_eco = (1+growth_rate_eco)^n_years;
-% [is_selected,peril_criterum,unit_criterium,category_criterium] = ...
-%        climada_assets_select(entity,hazard.peril_ID,'USD','');
-% entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor_eco;
-% % people
-% growth_factor_people = (1+growth_rate_people)^n_years;
-% [is_selected,peril_criterum,unit_criterium,category_criterium] = ...
-%        climada_assets_select(entity,hazard.peril_ID,'people','');
-% entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor_people;
-% entity.assets.reference_year = 2040;
-% [pathstr, name, ext] = fileparts(entity.assets.filename);
-% name_new = strrep(name,int2str(climada_global.present_reference_year),int2str(climada_global.future_reference_year));
-% entity.assets.filename = fullfile(pathstr, [name_new ext]);
-% save(entity.assets.filename,'entity')
+EDS(2) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 % 2040, moderate cc
 timehorizon = climada_global.future_reference_year;
@@ -234,13 +170,15 @@ fprintf('Save EDS waterfall in %s\n',[name ext])
 %% create waterfall AED (for times, once for USD, once for people, for moderate and for extreme climate change)
 unit_criterium = '';
 category_criterium = '';
+silent_mode = 1;
 [~,~,unit_list,category_criterium]...
-             = climada_assets_select(entity,hazard.peril_ID,unit_criterium,category_criterium);
+             = climada_assets_select(entity,hazard.peril_ID,unit_criterium,category_criterium,silent_mode);
 cc_scenario_names = {'moderate' 'extreme'};
+
 
 for u_i = 1:numel(unit_list)
     [is_selected,peril_criterum,unit_criterium,category_criterium] =...
-             climada_assets_select(entity,EDS(1).peril_ID,unit_list{u_i});  
+             climada_assets_select(entity,EDS(1).peril_ID,unit_list{u_i},'',silent_mode);  
     for EDS_i = 1:numel(EDS)
         EDS(EDS_i).ED = sum(EDS(EDS_i).ED_at_centroid(is_selected));
         EDS(EDS_i).Value = sum(EDS(EDS_i).assets.Value(is_selected));
@@ -258,6 +196,9 @@ for u_i = 1:numel(unit_list)
         print(fig,'-dpdf',[results_dir filesep pdf_filename])
     end
 end
+
+diary off
+
 
 
 %plot

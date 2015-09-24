@@ -35,6 +35,7 @@ function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file
 % Lea Mueller, muellele@gmail.com, 20150910, enhance to cope with Category names (cell) instead of numbers
 % Lea Mueller, muellele@gmail.com, 20150915, add assets_flag to write out sum of entity.assets.Value per category, as specified in EDS(EDS_i).assets.filename
 % Lea Mueller, muellele@gmail.com, 20150922, add filenames (entity.assets, entity.damagefunctions, entity.discount, entity.measures and EDS.hazard)
+% Lea Mueller, muellele@gmail.com, 20150924, set silent_mode for climada_assets_select
 %-
 
 output_report = []; %init
@@ -106,13 +107,16 @@ category_cell= 0;
 if iscell(entity.assets.Category(1))
     category_cell = 1;
 end
-    
+   
+% set to silent_mode for climada_assets_select
+silent_mode = 1; 
+
 % get all categories for this peril ID
 % use EDS(1) to get all categories
 unit_criterium = '';
 category_criterium = '';
 [is_selected,~,unit_list,category_criterium]...
-             = climada_assets_select(entity,EDS(1).peril_ID,unit_criterium,category_criterium);
+             = climada_assets_select(entity,EDS(1).peril_ID,unit_criterium,category_criterium,silent_mode);
 if ~any(is_selected)    
     fprintf('Invalid selection. \n'),return
 end  
@@ -205,7 +209,7 @@ for EDS_i = 1:EDS_no
         if exist(EDS(EDS_i).assets.filename,'file')
             load(EDS(EDS_i).assets.filename)
             [pathstr, name, ext] = fileparts(EDS(EDS_i).assets.filename);
-            fprintf('Load new entity (%s) to include asset values.\n',name)
+            %fprintf('Load new entity (%s) to include asset values.\n',name)
         end
     else
         entity = entity_ori;
@@ -217,11 +221,13 @@ for EDS_i = 1:EDS_no
         else
             filename = getfield(eval(all_filenames{f_i}),'filename');
         end
-        filesep_position = strfind(filename,filesep);
-        if no_folders>=numel(filesep_position)-1
-            no_folders = numel(filesep_position)-1;
+        if ~isempty(filename)
+            filesep_position = strfind(filename,filesep);
+            if no_folders>=numel(filesep_position)-1
+                no_folders = numel(filesep_position)-1;
+            end
+            output_report{start_row+f_i,column_position+1} = filename(filesep_position(end-no_folders):end);
         end
-        output_report{start_row+f_i,column_position+1} = filename(filesep_position(end-no_folders):end);
     end
 end
 
@@ -244,7 +250,7 @@ for EDS_i = 1:EDS_no
     for c_i = 1:numel(category_criterium)
         %[is_selected,peril_criterum,unit_criterium] = climada_assets_select(entity,EDS(EDS_i).peril_ID,'',category_criterium(c_i));
         [is_selected,peril_criterum,unit_criterium] =...
-            climada_assets_select(entity,EDS(EDS_i).peril_ID,'',category_criterium(c_i));
+            climada_assets_select(entity,EDS(EDS_i).peril_ID,'',category_criterium(c_i),silent_mode);
         if any(is_selected)  
             if EDS_i==1 % fill static columns
                 if category_cell
@@ -291,7 +297,7 @@ if unit_on
             if exist(EDS(EDS_i).assets.filename,'file')
                 load(EDS(EDS_i).assets.filename)
                 [pathstr, name, ext] = fileparts(EDS(EDS_i).assets.filename);
-                fprintf('Load new entity (%s) to include asset values.\n',name)
+                %fprintf('Load new entity (%s) to include asset values.\n',name)
             end
         else
             entity = entity_ori;
@@ -300,7 +306,7 @@ if unit_on
         % loop over different units
         for u_i = 1:numel(unit_list)
             [is_selected,peril_criterum,unit_criterium,category_criterium] =...
-                climada_assets_select(entity,EDS(EDS_i).peril_ID,unit_list{u_i},'');
+                climada_assets_select(entity,EDS(EDS_i).peril_ID,unit_list{u_i},'',silent_mode);
             if any(is_selected)
                 if EDS_i==1
                     output_report{c_i+u_i+1+1,1} = sprintf('%d, ',category_criterium);

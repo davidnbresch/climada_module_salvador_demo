@@ -60,12 +60,12 @@ entity.assets.reference_year = climada_global.future_reference_year;
 % set new reference year
 entity.assets.reference_year = climada_global.future_reference_year;
 
+fprintf('\t - future entity (%d), *%1.2f econ. development, *%1.2f population growth \n',...
+    climada_global.future_reference_year,growth_factor_eco, growth_factor_people)
+
 % save new entity
 [pathstr, name, ext] = fileparts(entity.assets.filename);
 name_new = strrep(name,int2str(climada_global.present_reference_year),int2str(climada_global.future_reference_year));
 entity.assets.filename = fullfile(pathstr, [name_new ext]);
-
-
-
 save(entity.assets.filename,'entity')
-fprintf('Save San Salvador future entity (%d) in %s\n', climada_global.future_reference_year, [name_new ext])
+fprintf('\t - save San Salvador future entity (%d) in %s\n', climada_global.future_reference_year, [name_new ext])
