@@ -69,76 +69,26 @@ end
 annotation_name = sprintf('%s, %s climate change',peril_ID,cc_scenario);
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
 
-%% Create future hazards TC with climate screw
-if strcmp(peril_ID,'TC')
-    salvador_TC_screw;
-    
-    %moderate
-    load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
-    hazard.reference_year = 2040;
-    hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',2040,screw_mod);
-    save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_moderate_cc'],'hazard');
-    
-    %extreme
-    load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
-    hazard.reference_year = 2040;
-    hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',2040,screw_ext);
-    save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_extreme_cc'],'hazard'); 
+% create and save future cc hazards (TC, LS_las_canas and LS_acelhuate)
+if strcmp(peril_ID,'TC') | strcmp(peril_ID,'LS_las_canas') | strcmp(peril_ID,'LS_acelhuate') | strcmp(peril_ID,'LS')
+    salvador_hazard_future_save(peril_ID)
 end
 
-%% Create future hazards LS with climate screw
-if strcmp(peril_ID,'LS_las_canas') | strcmp(peril_ID,'LS_acelhuate') | strcmp(peril_ID,'LS')
-    salvador_LS_screw;
-    hazard_set_file = sprintf('Salvador_hazard_%s_%d.mat', peril_ID, timehorizon);
-    % load today's hazard
-    load([climada_global.project_dir filesep hazard_set_file])
-    if ~exist('hazard','var') & exist('hazard_distance','var'), hazard = hazard_distance; end
-    hazard.reference_year = climada_global.present_reference_year;
-    if ~isfield(hazard,'category'), hazard.category(1:hazard.event_count) = 1; end
-    if ~strcmp([climada_global.project_dir filesep hazard_set_file], hazard.filename)
-        hazard.filename = [climada_global.project_dir filesep hazard_set_file];
-        save(hazard.filename,'hazard')
-        fprintf('Save hazard as %s\n', hazard_set_file)
-    end    
-    
-    % create moderate cc 2040 if not exist
-    cc_scenario = 'moderate';
-    hazard_set_file_moderate_cc = sprintf('Salvador_hazard_%s_%d_%s_cc.mat', peril_ID, climada_global.future_reference_year, cc_scenario);
-    if ~exist([climada_global.project_dir filesep hazard_set_file_moderate_cc],'file')
-        hazard.category(1:hazard.event_count) = 1;
-        hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',climada_global.future_reference_year,screw_mod);
-        hazard.intensity(hazard.intensity>1) = 1.0;
-        hazard.filename = [climada_global.project_dir filesep hazard_set_file_moderate_cc];
-        save([climada_global.project_dir filesep hazard_set_file_moderate_cc],'hazard');
-        fprintf('Save hazard as %s\n', hazard_set_file_moderate_cc)
-    end
-    
-    % create extreme cc 2040 if not exist
-    cc_scenario = 'extreme';
-    hazard_set_file_extreme_cc = sprintf('Salvador_hazard_%s_%d_%s_cc.mat', peril_ID, climada_global.future_reference_year, cc_scenario);
-    if ~exist([climada_global.project_dir filesep hazard_set_file_extreme_cc],'file')
-        % load today's hazard
-        load([climada_global.project_dir filesep hazard_set_file])
-        hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',climada_global.future_reference_year,screw_ext);
-        hazard.intensity(hazard.intensity>1) = 1;
-        hazard.filename = [climada_global.project_dir filesep hazard_set_file_extreme_cc];
-        save([climada_global.project_dir filesep hazard_set_file_extreme_cc],'hazard');
-        fprintf('Save hazard as %s\n', hazard_set_file_extreme_cc)
-    end
-end
+% %% Create future hazards TC with climate screw
+% if strcmp(peril_ID,'TC')
+%     salvador_TC_screw;
 %     %moderate
-%     load([climada_global.project_dir filesep 'Salvador_hazard_LS_acelhuate_2015'])
-%     hazard.category(1:hazard.event_count) = 1;
-%     hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',2040,screw_mod);
-%     hazard.intensity(hazard.intensity>1)=1;
-%     save([climada_global.project_dir filesep 'Salvador_hazard_LS_2040_moderate_cc'],'hazard');
+%     load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
+%     hazard.reference_year = climada_global.present_reference_year;
+%     hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',climada_global.future_reference_year,screw_mod);
+%     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_moderate_cc'],'hazard');
+%     
 %     %extreme
-%     load([climada_global.project_dir filesep 'hazard_distance'])
+%     load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
 %     hazard.reference_year = 2040;
-%     hazard.category(1:hazard.event_count)=1;
 %     hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',2040,screw_ext);
-%     hazard.intensity(hazard.intensity>1)=1;
-%     save([climada_global.project_dir filesep 'Salvador_hazard_LS_2040_extreme_cc'],'hazard'); 
+%     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_extreme_cc'],'hazard'); 
+% end
 
 
 %% Entity selection
@@ -150,7 +100,7 @@ switch peril_ID
             assets_file = ['20150916_FL' filesep 'entity_AMSS_FL.xls'];
         end
         if isempty(damfun_file)
-            damfun_file = ['20150910' filesep 'DamageFunction_150910.xlsx'];
+            damfun_file = ['20150910_FL' filesep 'DamageFunction_150910.xlsx'];
         end
 
     case 'TC'
@@ -219,26 +169,29 @@ EDS(1) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 entity_ori = entity;
 
 % 2040, economic growth
-% USD  
-growth_factor_eco = (1+growth_rate_eco)^n_years;
-[is_selected,peril_criterum,unit_criterium,category_criterium] = ...
-       climada_assets_select(entity,hazard.peril_ID,'USD','');
-entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor_eco;
-% people
-growth_factor_people = (1+growth_rate_people)^n_years;
-[is_selected,peril_criterum,unit_criterium,category_criterium] = ...
-       climada_assets_select(entity,hazard.peril_ID,'people','');
-entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor_people;
-entity.assets.reference_year = 2040;
-[pathstr, name, ext] = fileparts(entity.assets.filename);
-name_new = strrep(name,int2str(climada_global.present_reference_year),int2str(climada_global.future_reference_year));
-entity.assets.filename = fullfile(pathstr, [name_new ext]);
-save(entity.assets.filename,'entity')
+% create future entity
+entity_future = salvador_entity_future_create(entity, growth_rate_eco, growth_rate_people,hazard.peril_ID);
 annotation_name = 'Economic growth';
-EDS(2) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
+EDS(2) = climada_EDS_calc(entity_future,hazard,annotation_name,force_re_encode);
+
+% % USD  
+% growth_factor_eco = (1+growth_rate_eco)^n_years;
+% [is_selected,peril_criterum,unit_criterium,category_criterium] = ...
+%        climada_assets_select(entity,hazard.peril_ID,'USD','');
+% entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor_eco;
+% % people
+% growth_factor_people = (1+growth_rate_people)^n_years;
+% [is_selected,peril_criterum,unit_criterium,category_criterium] = ...
+%        climada_assets_select(entity,hazard.peril_ID,'people','');
+% entity.assets.Value(is_selected) = entity.assets.Value(is_selected) * growth_factor_people;
+% entity.assets.reference_year = 2040;
+% [pathstr, name, ext] = fileparts(entity.assets.filename);
+% name_new = strrep(name,int2str(climada_global.present_reference_year),int2str(climada_global.future_reference_year));
+% entity.assets.filename = fullfile(pathstr, [name_new ext]);
+% save(entity.assets.filename,'entity')
 
 % 2040, moderate cc
-timehorizon = 2040;
+timehorizon = climada_global.future_reference_year;
 cc_scenario = 'moderate';
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
 hazard = [];
@@ -247,7 +200,7 @@ annotation_name = sprintf('%s climate change',cc_scenario);
 EDS(3) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 
 % 2040, extreme cc
-timehorizon = 2040;
+timehorizon = climada_global.future_reference_year;
 cc_scenario = 'extreme';
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
 hazard = [];
