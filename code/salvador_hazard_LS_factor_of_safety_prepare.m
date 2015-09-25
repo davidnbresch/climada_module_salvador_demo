@@ -6,7 +6,8 @@ load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
 % load hazard LS binary
 load([climada_global.project_dir filesep 'Salvador_hazard_LS_2015'])
 
-
+% load shp files
+load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
 
 
 %-----------------------------------
@@ -22,8 +23,82 @@ ls_dir = [climada_global.project_dir filesep 'LS' filesep];
 % load assets
 load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
 
-%% create dem/centroids
-resolution_m = 30;
+
+
+
+
+%% create dem/centroids for ACELHUATE.
+
+% load dem 30m entire AMSS
+load([climada_global.project_dir filesep 'LS' filesep 'dem_30m_AMSS'])
+% resolution_m = 30;
+% check_plot = 1;
+% [dem, resolution_m] = salvador_dem_read('', resolution_m, check_plot);
+
+% load assets acelhuate
+load([climada_global.project_dir filesep 'Salvador_entity_2015_FL'])
+
+% select FL assets
+is_selected = climada_assets_select(entity,'FL');
+delta_lon = 0.01; %
+% delta_lon = 0.005;
+delta_lon = 0.05; %
+lon_min = min(entity.assets.lon(is_select))-delta_lon;
+lon_max = max(entity.assets.lon(is_select))+delta_lon;
+lat_min = min(entity.assets.lat(is_select))-delta_lon;
+lat_max = max(entity.assets.lat(is_select))+delta_lon;
+
+% create rectangle around acelhuate
+rectangle_acelhuate.lon = [lon_min lon_max lon_max lon_min lon_min];
+rectangle_acelhuate.lat = [lat_min lat_min lat_max lat_max lat_min];
+figure
+
+% plot DEM and assets
+% set figure parameters
+markersize = 3;
+marker = 's';
+cbar_on = 1;
+axlim = [lon_min lon_max lat_min lat_max];
+figure
+plotclr(dem.lon, dem.lat, dem.value,marker,markersize,cbar_on,550,1000);
+hold on
+plot3(entity.assets.lon(is_selected), entity.assets.lat(is_selected), ones(size(entity.assets.lon(is_selected)))*3000, 'xk','markersize',markersize-1)
+plot3(rectangle_acelhuate.lon, rectangle_acelhuate.lat, ones(size(rectangle_acelhuate.lon))*3000, '-or')
+axis(axlim)
+
+% only use dem values that are within Acelhuate rectangle
+indx_valid = inpoly([dem.lon' dem.lat'],[rectangle_acelhuate.lon' rectangle_acelhuate.lat']);
+% sum(indx_valid)
+% figure; plot(dem.lon(indx_valid),dem.lat(indx_valid),'.')
+
+% create temporary centroids with lon, lat, elevation
+centroids.lon     = dem.lon(indx_valid);
+centroids.lat     = dem.lat(indx_valid);
+centroids.elevation_m = dem.value(indx_valid);
+F_DEM = scatteredInterpolant(centroids.lon',centroids.lat',centroids.elevation_m');
+
+% create centroids on a regular grid
+res_km = 0.03;     
+centroids = climada_generate_centroids(rectangle_canas,res_km,0,'NO_SAVE',1);
+centroids.admin0_ISO3 = 'SLV'; 
+% compute centroids elevation
+centroids.elevation_m = F_DEM(centroids.lon',centroids.lat')';
+centroids.basin_ID = ones(size(centroids.lon));
+centroids = centroids_TWI(centroids, 0);
+save([ls_dir 'centroids_acelhuate_30m'],'centroids')
+
+% centroids.centroid_ID = 1:numel(centroids.lon);
+% centroids.onLand = ones(size(centroids.lon));
+% centroids.comment = dem.comment;
+% % add geographical features
+% centroids = centroids_TWI(centroids, 1);
+% add flow direction for the next 10 centroids
+% centroids = climada_flow_find(centroids);
+% save([ls_dir 'centroids_las_canas_30m'],'centroids')
+% load([ls_dir 'centroids_las_canas_30m'])
+
+
+
 check_plot = 1;
 [dem, resolution_m] = salvador_dem_read('', resolution_m, check_plot);
 
@@ -45,15 +120,7 @@ centroids.basin_ID = ones(size(centroids.lon));
 centroids = centroids_TWI(centroids, 1);
 save([ls_dir 'centroids_las_canas_30m_v1'],'centroids')
 
-% centroids.centroid_ID = 1:numel(centroids.lon);
-% centroids.onLand = ones(size(centroids.lon));
-% centroids.comment = dem.comment;
-% % add geographical features
-% centroids = centroids_TWI(centroids, 1);
-% add flow direction for the next 10 centroids
-% centroids = climada_flow_find(centroids);
-% save([ls_dir 'centroids_las_canas_30m'],'centroids')
-load([ls_dir 'centroids_las_canas_30m'])
+
 
 
 
@@ -75,6 +142,11 @@ centroids.lat = hazard.lat;
 cutoff = 1000;
 hazard_distance = climada_hazard_encode_distance(hazard,centroids,cutoff);
 save([ls_dir 'hazard_distance'],'hazard_distance')
+
+
+%% load hazard distance
+load([ls_dir 'hazard_distance'])
+
 
 % calculate statistics for return periods
 % hazard_distance.intensity_ori = hazard_distance.intensity;
@@ -98,18 +170,22 @@ xlim([0 50])
 
 
 %% create return period figures
-climada_hazard_stats_figure(hazard_distance_stats,[2 5 10 25 50])
+% climada_hazard_stats_figure(hazard_distance_stats,[2 5 10 25 50])
 
+% set min and max values to be shown on map
+miv = 0;
+mav = 220; %mav = 415;
 % cmap = flipud(climada_colormap('LS'));
 cmap = climada_colormap('LS');
+cmap(end-2:end-1,:) = [];
 hazard_distance_stats.distance_m_fit = (1.-hazard_distance_stats.intensity_fit)*hazard_distance.cutoff_m;
 hazard_distance_stats.distance_m_fit(hazard_distance_stats.intensity_fit>=1) = 1;
-markersize = 2.2;
+markersize = 3.0;% markersize = 2.2;
 marker = 's';
-for e_i = 3%1:length(return_periods)
+for e_i = 1:length(return_periods)
     %e_i = 3;
     fig = climada_figuresize(0.65,0.8);%(0.5,0.6);
-    cbar = plotclr(hazard.lon, hazard.lat, hazard_distance_stats.distance_m_fit(e_i,:),marker,markersize,1,0,415,cmap);
+    cbar = plotclr(hazard.lon, hazard.lat, hazard_distance_stats.distance_m_fit(e_i,:),marker,markersize,1,miv,mav,cmap);
     %plotclr(hazard.lon, hazard.lat, hazard_distance_stats.intensity_fit(e_i,:),'','',1,0,1,cmap);
     hold on; 
     plot3(polygon_canas.X, polygon_canas.Y,ones(size(polygon_canas.X))*1000,'color',[100 100 100]/255);
@@ -248,10 +324,10 @@ climada_figure_axis_limits_equal_for_lat_lon(axlim)
 %%  create figures to understand the situation
 
 delta_lon = 0.005;
-lon_min = min(entity.assets.lon)-delta_lon;
-lon_max = max(entity.assets.lon)+delta_lon;
-lat_min = min(entity.assets.lat)-delta_lon;
-lat_max = max(entity.assets.lat)+delta_lon;
+lon_min = min(entity.assets.lon(is_selected))-delta_lon;
+lon_max = max(entity.assets.lon(is_selected))+delta_lon;
+lat_min = min(entity.assets.lat(is_selected))-delta_lon;
+lat_max = max(entity.assets.lat(is_selected))+delta_lon;
 
 markersize = 2.2;
 marker = 's';
@@ -265,12 +341,18 @@ titlestr = 'Entity assets (USD)';
 miv = 1000;
 mav = 2*10^5;
 fig = climada_figuresize(0.5,0.6);
-plotclr(entity.assets.lon, entity.assets.lat, entity.assets.Value,marker,markersize,cbar_on,miv,mav);
-title(titlestr); axis(axlim); box on; climada_figure_scale_add('',7,1)
-polygon_canas = climada_shape_selector(fig,1,1);
-polygon_canas.lon = polygon_canas.X;
-polygon_canas.lat = polygon_canas.Y;
-pdf_filename = sprintf('LS_entity_assets.pdf');
+plotclr(entity.assets.lon(is_selected), entity.assets.lat(is_selected), entity.assets.Value(is_selected),marker,markersize,cbar_on,miv,mav);
+title(titlestr); axis(axlim); box on; hold on
+climada_figure_axis_limits_equal_for_lat_lon(axlim); climada_figure_scale_add('',7,1);
+% polygon_canas = climada_shape_selector(fig,1,1);
+% polygon_canas.lon = polygon_canas.X;
+% polygon_canas.lat = polygon_canas.Y;
+polygon_acelhuate = climada_shape_selector(fig,1,1);
+polygon_acelhuate.lon = polygon_acelhuate.X;
+polygon_acelhuate.lat = polygon_acelhuate.Y;
+% shape_plotter(polygon_rio_acelhuate, '')
+% shape_plotter(shapes,label_att,lon_fieldname,lat_fieldname,varargin)
+pdf_filename = sprintf('LS_entity_assets_acelhuate.pdf'); %pdf_filename = sprintf('LS_entity_assets.pdf');
 print(fig,'-dpdf',[ls_dir pdf_filename])
 
 % dem
@@ -768,8 +850,6 @@ rectangle_canas.lon = [lon_min lon_max lon_max lon_min lon_min];
 rectangle_canas.lat = [lat_min lat_min lat_max lat_max lat_min];
 figure
 plot3(rectangle_canas.lon, rectangle_canas.lat, ones(size(rectangle_canas.lon))*3000, '-or')
-
-
 
 
 
