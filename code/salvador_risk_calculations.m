@@ -10,7 +10,8 @@ salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir
 nametag = 'regional_scope_of_measures_A_B_1';
 assets_file= '';
 damfun_file = '';
-measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+measures_file = ['20150918' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+% measures_file = '';
 % measures_file = ['20150909' filesep 'medidas selection'];
 results_dir = '';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
@@ -18,17 +19,21 @@ salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir
 nametag = 'v0';
 growth_rate_eco =  '';
 growth_rate_people = '';
-results_dir = 'LS_acelhuate_v6';
-assets_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
-damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
-EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,'LS_acelhuate');
+results_dir = 'LS_las_canas_v1';
+assets_file = '';
+damfun_file = '';
+% peril_ID = 'LS_acelhuate';
+peril_ID = 'LS_las_canas';
+% assets_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
+% damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
 % EDS=salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID)
 
 
 nametag = '';
 growth_rate_eco =  '';
 growth_rate_people = '';
-results_dir = 'FL_new_format';
+results_dir = 'TC_new_format';
 assets_file = '';
 damfun_file = '';
 EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,'FL');
@@ -312,11 +317,11 @@ category_list = unique(entity.assets.Category(salvador_assets_select(entity,peri
 % print_figure = 1;
 print_figure = 0;
 
-for f_i = 1%:numel(fieldname_list)
+for f_i = 2%1%:numel(fieldname_list)
     for c_i = 1:numel(category_list)
-        fig = salvador_map_plot(entity,EDS,fieldname_list{f_i},peril_ID,'',category_list(c_i),print_figure);
-        cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end-1,:),...
-               's',0.5,1,0,6,climada_colormap('FL'));
+        fig = salvador_map_plot(entity,EDS(1),fieldname_list{f_i},peril_ID,'',category_list(c_i),print_figure);
+        %cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end-1,:),...
+        %       's',0.5,1,0,6,climada_colormap('FL'));
         pdf_filename= sprintf('Assets_orig_cat_%d.png',c_i);   
         print(fig,'-dpng',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
     end %c_i

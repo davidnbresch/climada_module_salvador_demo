@@ -1,4 +1,4 @@
-function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file,sheet,benefit_flag, percentage_flag, assets_flag)
+function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file,sheet,benefit_flag,percentage_flag,assets_flag)
 % salvador_EDS_ED_per_category_report
 % MODULE:
 %   salvador_demo

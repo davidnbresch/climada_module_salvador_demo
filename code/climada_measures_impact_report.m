@@ -6,12 +6,13 @@ function output_report = climada_measures_impact_report(measures_impact,xls_file
 % PURPOSE:
 %   Write out measures_impact report (discounted benefits over time horizon, costs, benefit/cost ratio)
 % CALLING SEQUENCE:
-%   output_report = climada_measures_impact_report(measures_impactt)
+%   output_report = climada_measures_impact_report(measures_impact,xls_file,sheet)
 % EXAMPLE:
 %   output_report = climada_measures_impact_report
 % INPUTS:
 %   measures_impact: climada measures_impact structure, with fields 
 %       .benefit, .cb_ratio, measures.cost, .measures.name 
+%       can hold multiple measures_impact files
 % OPTIONAL INPUT PARAMETERS:
 %   xls_file: filename (and path) to save the report to (as .xls), if
 %       empty, prompted for.Can be set to 'NO_xls_file' to omit creation of
@@ -23,6 +24,7 @@ function output_report = climada_measures_impact_report(measures_impact,xls_file
 % MODIFICATION HISTORY:
 % Lea Mueller, muellele@gmail.com, 20150907, init
 % Lea Mueller, muellele@gmail.com, 20150909, add NPV total climate risk
+% Lea Mueller, muellele@gmail.com, 20150924, enhance to cope with multiple measures_impact's
 %-
 
 global climada_global
@@ -54,8 +56,10 @@ if ~strcmp(xls_file,'NO_xls_file')
 end
 
 header_row    = 1;
-static_column_no = 6;
-n_measures = numel(measures_impact.measures.cost);
+static_column_no = 2;
+variable_column_no = 2;
+n_measures = numel(measures_impact(1).measures.cost);
+n_impacts = numel(measures_impact);
 n_years = climada_global.future_reference_year - climada_global.present_reference_year+1;
 output_report = cell(n_measures+header_row+1,static_column_no);
 % output_report = cell(numel(category_criterium)+numel(unit_list)+header_row,static_column_no);
@@ -75,30 +79,41 @@ output_report = cell(n_measures+header_row+1,static_column_no);
 output_report{1,1} = 'Measure name';
 output_report{1,2} = sprintf('Costs (USD)');
 
-% special case for people
-if strcmp(measures_impact.Value_unit,'people')
-    output_report{1,3} = sprintf('Benefit over %d years (%s, peril %s)',...
-                         n_years,sprintf('%s ',measures_impact.Value_unit), measures_impact.peril_ID);
-    output_report{1,4} = sprintf('Benefit-cost ratio (%s/10''000USD, peril %s)',...
-                         measures_impact.Value_unit, measures_impact.peril_ID);
-    measures_impact.cb_ratio = measures_impact.cb_ratio/10000;
-    output_report{end,1} = sprintf('Control (Not discounted damage over %d years)',n_years);  
-else
-    output_report{1,3} = sprintf('Discounted benefit over %d years (%s, peril %s)',...
-                         n_years,sprintf('%s ',measures_impact.Value_unit), measures_impact.peril_ID);
-    output_report{1,4} = sprintf('Benefit-cost ratio (%s/USD, peril %s)',...
-                         measures_impact.Value_unit, measures_impact.peril_ID);
-    output_report{end,1} = sprintf('Control (Discounted damage over %d years)',n_years);               
-end
 
 
-output_report(2:end-1,1) = measures_impact.measures.name;
-output_report(2:end-1,2) = num2cell(measures_impact.measures.cost);
-output_report(2:end-1,3) = num2cell(measures_impact.benefit);
-output_report(2:end-1,4) = num2cell(1./measures_impact.cb_ratio);
- 
-output_report(end,3) = num2cell(measures_impact.NPV_total_climate_risk);
+% loop over n_impacts
+for impact_i = 1:n_impacts
+    column_position = static_column_no + (impact_i-1)*variable_column_no;
+    % special case for people
+    if strcmp(measures_impact(1).Value_unit,'people')
+        output_report{1,column_position+1} = sprintf('Benefit over %d years (%s, peril %s), %s',...
+                             n_years,sprintf('%s ',measures_impact(impact_i).Value_unit), measures_impact(impact_i).peril_ID,...
+                             measures_impact(impact_i).title_str);
+        output_report{1,column_position+2} = sprintf('Benefit-cost ratio (%s/10''000USD, peril %s)',...
+                             measures_impact(impact_i).Value_unit, measures_impact(impact_i).peril_ID);
+        measures_impact(impact_i).cb_ratio = measures_impact(impact_i).cb_ratio/10000;
+        output_report{end,1} = sprintf('Control (Not discounted damage over %d years)',n_years);  
+        
+    else
+        output_report{1,column_position+1} = sprintf('Discounted benefit over %d years (%s, peril %s), %s',...
+                             n_years,sprintf('%s ',measures_impact(impact_i).Value_unit), measures_impact(impact_i).peril_ID,...
+                             measures_impact(impact_i).title_str);
+        output_report{1,column_position+2} = sprintf('Benefit-cost ratio (%s/USD, peril %s)',...
+                             measures_impact(impact_i).Value_unit, measures_impact(impact_i).peril_ID);
+        output_report{end,1} = sprintf('Control (Discounted damage over %d years)',n_years);               
+    end
+end %impact_i
 
+output_report(2:end-1,1) = measures_impact(1).measures.name;
+output_report(2:end-1,2) = num2cell(measures_impact(1).measures.cost);
+
+% loop over n_impacts
+for impact_i = 1:n_impacts
+    column_position = static_column_no + (impact_i-1)*variable_column_no;
+    output_report(2:end-1,column_position+1) = num2cell(measures_impact(impact_i).benefit);
+    output_report(2:end-1,column_position+2) = num2cell(1./measures_impact(impact_i).cb_ratio);
+    output_report(end,column_position+1) = num2cell(measures_impact(impact_i).NPV_total_climate_risk);
+end %impact_i
 
 
 % do not save in an xls_file
