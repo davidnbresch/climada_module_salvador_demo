@@ -1,8 +1,8 @@
 
-nametag = 'regional_scope_of_measures_A_B_2';
+nametag = 'measures_A_B_2_urban_planning';
 assets_file= '';
 damfun_file = '';
-measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_2.xls'];
+measures_file = ['20150925_FL' filesep 'measures_template_for_measures_location_A_B_2.xls'];
 % measures_file = ['20150909' filesep 'medidas selection'];
 results_dir = '';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)

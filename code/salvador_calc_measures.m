@@ -18,6 +18,8 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Lea Mueller, muellele@gmail.com, 20150921, use new assets for FL
 % Lea Mueller, muellele@gmail.com, 20150921, use new functions salvador_hazard_future_save, salvador_entity_files_set, 
 %              add diary file, add future scenarios (2040 eco. development, 2040 moderate cc, 2040 extreme cc)
+% Lea Mueller, muellele@gmail.com, 20150925, add urban planning (set to nil for 2015), use different 
+%              hazard_intensity_impact_a for today, moderate and extreme cc
 %-
 
 global climada_global
@@ -107,7 +109,8 @@ entity.measures.hazard_intensity_impact_b = zeros(size(entity.measures.hazard_in
 entity.measures.hazard_high_frequency_cutoff = zeros(size(entity.measures.hazard_high_frequency_cutoff));
 
 % save entity
-entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
+% entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
+entity_filename = [results_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
 entity.assets.filename = entity_filename;
 save(entity_filename,'entity')
 
@@ -170,6 +173,14 @@ save(entity_filename,'entity')
 % load([climada_global.project_dir filesep 'Salvador_entity_2015.mat'])
 
 
+%% special case for urban planning measure
+measures_ori = entity.measures;
+
+% overwrite for 2040 no change scenario with 'nil'
+is_nil = strcmp(entity.measures.assets_file,'nil');
+entity.measures.assets_file{~is_nil} = 'nil';
+
+
 %% calculate measures impact
 % entity.measures.hazard_intensity_impact_b = -entity.measures.hazard_intensity_impact;
 sanity_check = 1;
@@ -179,13 +190,18 @@ measures_impact = climada_measures_impact(entity,hazard,'no','','',sanity_check)
 % % measures_impact_filename = [climada_global.project_dir filesep sprintf('measures_impact_%s_%s.mat',datestr(now,'YYYYmmdd'),nametag)];
 % save(measures_impact_filename,'measures_impact')
 
+
 %% calculate measures impact, future scenario
+% use new assets for urban planning
+entity.measures = measures_ori;
 entity_future = salvador_entity_future_create(entity, '', '',hazard.peril_ID);
 
 % 2040, economic growth, no cc
 measures_impact(2) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
 
 % 2040, moderate cc
+% use different hazard_intensity_impact_a for moderate cc
+entity_future.measures.hazard_intensity_impact_a = entity_future.measures.hazard_intensity_impact_a_moderate_cc;
 cc_scenario = 'moderate';
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario);
 hazard = [];
@@ -195,7 +211,8 @@ load([climada_global.project_dir filesep hazard_set_file])
 measures_impact(3) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
 
 % 2040, extreme cc
-timehorizon = climada_global.future_reference_year;
+% use different hazard_intensity_impact_a for moderate cc
+entity_future.measures.hazard_intensity_impact_a = entity_future.measures.hazard_intensity_impact_a_extreme_cc;
 cc_scenario = 'extreme';
 hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario);
 hazard = [];
@@ -243,7 +260,7 @@ for scenario_i = 1:numel(scenarios)
 end %scenario_i
 
 
-% create adaptation bar charts
+%% create adaptation bar charts
 sort_measures = 1;
 scale_benefit = 1;
 benefit_str = '';
@@ -268,7 +285,7 @@ print(fig,'-dpdf',[results_dir filesep pdf_filename])
 
 
 %% produce reports and figures
-ED_filename = sprintf('ED_%s_%d_%s_cc_measures_%s_%s_v1.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'),nametag);
+ED_filename = sprintf('ED_%s_%d_measures_%s_%s_v1.xls', peril_ID, climada_global.future_reference_year,datestr(now,'YYYYmmdd'),nametag);
 xls_file = [results_dir filesep ED_filename];
 
 % discounted benefits per measure and scenario
@@ -286,8 +303,15 @@ for scenario_i = 1:numel(scenarios)
     if numel(sheet_name)>30
         sheet_name = sheet_name(1:30);
     end
-    salvador_EDS_ED_per_category_report(entity, measures_impact(scenario_i).EDS,xls_file,sheet_name,benefit_flag,percentage_flag);
+    salvador_EDS_ED_per_category_report(entity,measures_impact(scenario_i).EDS,xls_file,sheet_name,benefit_flag,percentage_flag);
 end %scenario_i
+% write assets to compare measures with different assets
+scenario_i = 3;
+sheet_name = sprintf('Assets %d',climada_global.future_reference_year);
+EDS_output = measures_impact(scenario_i).EDS;
+EDS_output(end+1) = measures_impact(1).EDS(end);
+EDS_output = EDS_output([5 1 2 3 4]);
+salvador_EDS_ED_per_category_report(entity,EDS_output,xls_file,sheet_name,'','',1);
 
 % ED at centroid
 scenario_i = 3;
