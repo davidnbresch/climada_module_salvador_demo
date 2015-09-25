@@ -16,6 +16,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, 20150901, init
 % Lea Mueller, 20150924, cleanup and add new functions (salvador_entity_files_set, salvador_entity_future_create, salvador_hazard_future_save) 
 % Lea Mueller, 20150924, add diary_file
+% Lea Mueller, 20150925, check damagefunctions
 %-
 
 
@@ -83,6 +84,7 @@ end
 
 
 %% Entity selection
+% set consultant_data_entity_dir
 consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
 measures_file= '';
 [assets_file, damfun_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID);
@@ -92,9 +94,18 @@ measures_file= '';
 entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
 entity.assets.reference_year = climada_global.present_reference_year;
 if isfield(entity.assets,'VALNaN'), entity.assets = rmfield(entity.assets,'VALNaN');end
+
+% read damagefunctions
 entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
-entity = climada_damagefunctions_check(entity,hazard,0);
+% check damage functions are defined for the given hazard intensity range
+silent_mode = 1;
+entity_out = climada_damagefunctions_check(entity,hazard,silent_mode);
+entity.damagefunctions = entity_out.damagefunctions;
+
+% init measures
 entity.measures.filename = '';
+
+% save entity
 entity_filename = [climada_global.project_dir filesep 'Salvador_entity_2015_' peril_ID '.mat'];
 entity.assets.filename = entity_filename;
 save(entity_filename,'entity')
