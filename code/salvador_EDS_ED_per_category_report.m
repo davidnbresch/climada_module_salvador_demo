@@ -1,4 +1,4 @@
-function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file,sheet,benefit_flag,percentage_flag,assets_flag)
+function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file,sheet,benefit_flag,percentage_flag,assets_flag,summary)
 % salvador_EDS_ED_per_category_report
 % MODULE:
 %   salvador_demo
@@ -24,6 +24,7 @@ function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file
 %       empty, prompted for.Can be set to 'NO_xls_file' to omit creation of
 %       xls file instead only creates the cell "output_report"
 %   sheet: sheet name for xls file, if empty, default excel name is "Sheet1"
+%   summary: Shortens teh code and suppresses some outputs, so it can be used by salvador_results_overview  
 % OUTPUTS:
 %   output_report: cell including header and ED values
 %   report file written as .xls
@@ -36,7 +37,7 @@ function output_report = salvador_EDS_ED_per_category_report(entity,EDS,xls_file
 % Lea Mueller, muellele@gmail.com, 20150915, add assets_flag to write out sum of entity.assets.Value per category, as specified in EDS(EDS_i).assets.filename
 % Lea Mueller, muellele@gmail.com, 20150922, add filenames (entity.assets, entity.damagefunctions, entity.discount, entity.measures and EDS.hazard)
 % Lea Mueller, muellele@gmail.com, 20150924, set silent_mode for climada_assets_select
-%-
+%-Jacob Anz,   j.anz@gmail.com,    20150929, add summary input so it can be executed with salvador_results_overview   
 
 output_report = []; %init
 
@@ -51,7 +52,7 @@ if ~exist('sheet'   ,'var'),    sheet   ='';    end
 if ~exist('benefit_flag','var'),benefit_flag = 1; end
 if ~exist('percentage_flag','var'),percentage_flag = 0; end
 if ~exist('assets_flag','var'),assets_flag = 0; end
-
+if ~exist('summary','var'),summary = 0; end
 
 % PARAMETERS
 
@@ -138,16 +139,18 @@ static_column_no = 6;
 output_report = cell(numel(category_criterium)+numel(unit_list)+header_row,static_column_no);
 no_filename_rows = 5;
 
-% additional information below the table
-row_no = numel(category_criterium)+numel(unit_list)+no_filename_rows+7;
-output_report{row_no+1,1} = 'Further information';
-output_report{row_no+2,1} = 'AED';
-output_report{row_no+2,2} = ' = Annual expected damage';
-output_report{row_no+3,1} = 'Benefit';
-output_report{row_no+3,2} = ' = Averted damage = AED control - AED with a specific measure';
-output_report{row_no+4,1} = 'Benefit in percentage ';
-output_report{row_no+4,2} = 'in relation to AED control, this is to describe the efficiency of a measure';
-
+if summary
+else
+    % additional information below the table
+    row_no = numel(category_criterium)+numel(unit_list)+no_filename_rows+7;
+    output_report{row_no+1,1} = 'Further information';
+    output_report{row_no+2,1} = 'AED';
+    output_report{row_no+2,2} = ' = Annual expected damage';
+    output_report{row_no+3,1} = 'Benefit';
+    output_report{row_no+3,2} = ' = Averted damage = AED control - AED with a specific measure';
+    output_report{row_no+4,1} = 'Benefit in percentage ';
+    output_report{row_no+4,2} = 'in relation to AED control, this is to describe the efficiency of a measure';
+end
 
 % set header names
 output_report{1,1} = 'Category';
@@ -345,31 +348,32 @@ end %unit_on
 
 
 
-
+if summary
+else    
 % do not save in an xls_file
-if ~strcmp(xls_file,'NO_xls_file')
-  
-    warning('off','MATLAB:xlswrite:AddSheet'); % suppress warning message
-    try
-        xlswrite(xls_file,output_report,sheet)
-    catch
-        % probably too large for old excel, try writing to .xlsx instead
+    if ~strcmp(xls_file,'NO_xls_file')
+
+        warning('off','MATLAB:xlswrite:AddSheet'); % suppress warning message
         try
-            xlsx_file = [xls_file 'x'];
-            xlswrite(xlsx_file,output_report,sheet)
+            xlswrite(xls_file,output_report,sheet)
         catch
-            % probably too large for new excel, write to textfile instead
-            cprintf([1 0 0],'FAILED\n')
-            fprintf('attempting to write to text file instead... ')
-            txt_file = strrep(xlsx_file,'.xlsx','.txt');
-            writetable(cell2table(output_report),txt_file)
-            fclose all;
+            % probably too large for old excel, try writing to .xlsx instead
+            try
+                xlsx_file = [xls_file 'x'];
+                xlswrite(xlsx_file,output_report,sheet)
+            catch
+                % probably too large for new excel, write to textfile instead
+                cprintf([1 0 0],'FAILED\n')
+                fprintf('attempting to write to text file instead... ')
+                txt_file = strrep(xlsx_file,'.xlsx','.txt');
+                writetable(cell2table(output_report),txt_file)
+                fclose all;
+            end
         end
+
+        fprintf('done\n')
+        fprintf('report written to sheet %s of %s\n',sheet,xls_file);
+
     end
-
-    fprintf('done\n')
-    fprintf('report written to sheet %s of %s\n',sheet,xls_file);
-    
 end
-
 return
