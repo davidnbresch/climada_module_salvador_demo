@@ -42,8 +42,8 @@ switch peril_ID
             damfun_file = ['20150910_FL' filesep 'DamageFunction_150910.xlsx'];
         end
         if isempty(measures_file)
-            measures_file = ['20150918' filesep 'measures_template_for_measures_location_A_B_2.xls'];
-            %measures_file = ['20150918' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+            measures_file = ['20150918' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+            %measures_file = ['20150918' filesep 'measures_template_for_measures_location_A_B_2.xls'];
             %measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_2.xls'];
             %measures_file = ['20150914' filesep 'measures_template_for_measures_location_A_B_1.xls'];
             % measures_file = ['20150909' filesep 'Medidas parametrizadas_2m_150908 aumentada precio mejorad y mantenimiento.xlsx'];
@@ -56,27 +56,34 @@ switch peril_ID
 
     case 'TC'
         if isempty(assets_file)
-            assets_file = ['20150917_TC' filesep 'entity_AMSS_WIND_NEW.xlsx'];
+            assets_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915.xlsx'];
         end
         if isempty(damfun_file)
-            damfun_file = ['20150811_TC' filesep 'entity_AMSS_WIND-10ms.xlsx'];
+            damfun_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915.xlsx'];
         end  
         
     case 'LS_las_canas'
         if isempty(assets_file)
-           assets_file = ['20150806_LS_las_canas' filesep 'entity_AMSS_DESLIZAMIENTO.xlsx'];
+           assets_file = ['20150925_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LAS_CANAS.xls'];
         end 
         if isempty(damfun_file)
-            damfun_file = ['damage_functions' filesep 'entity_AMSS_DESLIZAMIENTO_NEW.xlsx'];
+            damfun_file = ['damage_functions' filesep 'funcion_de_daño_deslizamiento_2509_new.xlsx'];
         end
-        
+        if isempty(measures_file)
+            measures_file=['20150925_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE.xls'];
+        end
+
     case 'LS_acelhuate'
         if isempty(assets_file)
-           assets_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
+           assets_file = ['20150925_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE.xls'];
         end 
         if isempty(damfun_file)
-            damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
+            damfun_file = ['damage_functions' filesep 'funcion_de_daño_deslizamiento_2509_new.xlsx'];
         end
+        if isempty(measures_file)
+            measures_file=['20150925_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE.xls'];
+        end
+        
 end
 
 fprintf('\t - assets: %s\n', assets_file)
