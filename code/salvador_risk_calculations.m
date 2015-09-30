@@ -1,8 +1,8 @@
 
-nametag = 'measures_A_B_2_urban_planning';
+nametag = 'measures_A_B_1_v6';
 assets_file= '';
 damfun_file = '';
-measures_file = ['20150925_FL' filesep 'measures_template_for_measures_location_A_B_2.xls'];
+measures_file = ['20150925_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'];
 % measures_file = ['20150909' filesep 'medidas selection'];
 results_dir = '';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
@@ -16,14 +16,16 @@ measures_file = ['20150918' filesep 'measures_template_for_measures_location_A_B
 results_dir = '';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
 
-nametag = 'v0';
+nametag = 'v1';
 growth_rate_eco =  '';
 growth_rate_people = '';
-results_dir = 'LS_las_canas_v1';
+results_dir = ''; %results_dir = 'LS_las_canas_v1';
 assets_file = '';
 damfun_file = '';
+peril_ID = 'FL';
 % peril_ID = 'LS_acelhuate';
-peril_ID = 'LS_las_canas';
+% peril_ID = 'LS_las_canas';
+growth_rate_people = 0.008;
 % assets_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
 % damfun_file = ['20150921_LS_acelhuate' filesep 'entity_AMSS_LS_acelhuate.xls'];
 EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);

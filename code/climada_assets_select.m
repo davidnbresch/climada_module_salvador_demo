@@ -51,6 +51,7 @@ if isempty(unit_criterium    ), unit_criterium     = ''; end
 if isempty(category_criterium), category_criterium = ''; end 
 if isempty(silent_mode), silent_mode = 0; end 
 
+entity.assets.lon(isnan(entity.assets.lon)) = 0;
 is_selected = logical(entity.assets.lon); %init
 is_unit     = logical(entity.assets.lon);
 is_category = logical(entity.assets.lon);

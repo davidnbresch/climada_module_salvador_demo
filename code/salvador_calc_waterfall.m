@@ -17,6 +17,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, 20150924, cleanup and add new functions (salvador_entity_files_set, salvador_entity_future_create, salvador_hazard_future_save) 
 % Lea Mueller, 20150924, add diary_file
 % Lea Mueller, 20150925, check damagefunctions
+% Lea Mueller, 20150925, set max_distance_to_hazard to 10^6 if not FL
 %-
 
 
@@ -120,7 +121,7 @@ clear EDS % init
 if strcmp(peril_ID,'FL')
     climada_global.max_distance_to_hazard = 20;
 else
-    climada_global.max_distance_to_hazard = 1000;
+    climada_global.max_distance_to_hazard = 10^6;
 end
 entity = climada_assets_encode(entity,hazard,climada_global.max_distance_to_hazard);
 force_re_encode = 0;
