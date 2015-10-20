@@ -24,6 +24,7 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Lea Mueller, muellele@gmail.com, 20150930, add special xlim for medidas 1 FL
 % Lea Mueller, muellele@gmail.com, 20151020, add switch for peril_IDs (FL, TC, LS_las_canas, LS_acelhuate)
 % Lea Mueller, muellele@gmail.com, 20151020, add special xlim for LS_las_canas people
+% Lea Mueller, muellele@gmail.com, 20151020, add special xlim for LS_acelhuate people
 %-
 
 global climada_global
@@ -282,7 +283,7 @@ if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCAN
     xlim_value = 2*620; %xlim_value = 620;
 end
 if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'])
-    xlim_value = 450;
+    xlim_value = 2*450;
 end
 fig = climada_adaptation_bar_chart_v2(measures_impact_people,sort_measures,scale_benefit,benefit_str,'southeast','',cost_unit,xlim_value);
 pdf_filename = sprintf('Adaptation_bar_chart_people_sorted_%s_%s.pdf',measures_impact_USD(u_i).peril_ID,nametag);
@@ -292,7 +293,7 @@ print(fig,'-dpdf',[results_dir filesep pdf_filename])
 
 
 %% produce reports and figures
-ED_filename = sprintf('ED_%s_%d_measures_%s_%s_v1.xls', peril_ID, climada_global.future_reference_year,datestr(now,'YYYYmmdd'),nametag);
+ED_filename = sprintf('ED_%s_%d_measures_%s_%s.xls', peril_ID, climada_global.future_reference_year,datestr(now,'YYYYmmdd'),nametag);
 xls_file = [results_dir filesep ED_filename];
 
 % discounted benefits per measure and scenario
