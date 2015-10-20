@@ -7,13 +7,26 @@ results_dir = '';
 peril_ID = 'LS_las_canas';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID)
 
-nametag = 'measures_LS_acelhuate_v2';
+nametag = 'waterfall_LS_las_canas_v2';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = ''; %results_dir = 'LS_las_canas_v1';
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
+
+
+nametag = 'measures_LS_acelhuate';
 assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
 damfun_file = assets_file;
 measures_file = assets_file;
 results_dir = '';
 peril_ID = 'LS_acelhuate';
 salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID)
+
+nametag = 'waterfall_LS_acelhuate';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = ''; %results_dir = 'LS_las_canas_v1';
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
 
 nametag = 'measures_TC_v1';
 assets_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915_v2.xlsx'];

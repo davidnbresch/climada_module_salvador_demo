@@ -18,6 +18,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, 20150924, add diary_file
 % Lea Mueller, 20150925, check damagefunctions
 % Lea Mueller, 20150925, set max_distance_to_hazard to 10^6 if not FL
+% Lea Mueller, 20151020, do not show legend in waterfall graph
 %-
 
 
@@ -204,6 +205,8 @@ for u_i = 1:numel(unit_list)
             case 'extreme'
                 fig = climada_waterfall_graph(EDS(1),EDS(2),EDS(4),'AED');
         end
+        % do not show legend
+        legend('off'); %legend(get(fig),'');
         pdf_filename = sprintf('Waterfall_%s_%s_cc_%s_%s.pdf',peril_ID,cc_scenario_names{cc_i},unit_criterium{1},nametag);
         print(fig,'-dpdf',[results_dir filesep pdf_filename])
     end
