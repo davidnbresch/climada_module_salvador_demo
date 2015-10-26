@@ -1,4 +1,4 @@
-function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID)
+function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID,m_file)
 % calculate measures for salvador FL (for now)
 % NAME:
 %   salvador_calc_measures
@@ -9,6 +9,7 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 %   salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir)
 % EXAMPLE:
 %   salvador_calc_measures('FL_v2',assets_file,damfun_file,measures_file,'20150922_measures_FL_v2')
+%   salvador_calc_measures('FL',[],[],[], [],'FL','AB2');
 % INPUTS:
 % OPTIONAL INPUT PARAMETERS:
 % OUTPUTS:
@@ -25,6 +26,9 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Lea Mueller, muellele@gmail.com, 20151020, add switch for peril_IDs (FL, TC, LS_las_canas, LS_acelhuate)
 % Lea Mueller, muellele@gmail.com, 20151020, add special xlim for LS_las_canas people
 % Lea Mueller, muellele@gmail.com, 20151020, add special xlim for LS_acelhuate people
+% Jacob Anz,   j.anz@gmx.net     , 20151021, add input parameter m_file
+% Jacob Anz,   j.anz@gmx.net     , 20151026, set xlim_value for TC and cleanup
+% Jacob Anz,   j.anz@gmx.net     , 20151026, set special m_file limits only for peril FL
 %-
 
 global climada_global
@@ -37,11 +41,13 @@ if ~exist('damfun_file', 'var'), damfun_file = []; end
 if ~exist('measures_file', 'var'), measures_file = ''; end
 if ~exist('results_dir', 'var'), results_dir = ''; end
 if ~exist('peril_ID', 'var'), peril_ID = ''; end
+if ~exist('m_file', 'var'), m_file = ''; end
 
 % PARAMETERS
 if isempty(nametag), nametag = ''; end
 if isempty(results_dir), results_dir =[climada_global.project_dir filesep sprintf('%s_',datestr(now,'YYYYmmdd')) nametag];end
 if isempty(peril_ID), peril_ID = 'FL'; end
+if isempty(m_file), m_file = ''; end
 
 % create results dir
 if ~exist(results_dir,'dir')
@@ -84,7 +90,7 @@ end
 %% Entity selection
 % set consultant_data_entity_dir
 consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
-[assets_file, damfun_file, measures_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID);
+[assets_file, damfun_file, measures_file, m_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID,m_file);
 
 % read entity assets today
 entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
@@ -230,10 +236,14 @@ scenario_i = 3;
 
 % set xlim_value
 xlim_value = '';
-if strcmp(measures_file,['20151015_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'])
+% if strcmp(measures_file,['20151015_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'])
+if strcmp(m_file,'AB1') && strcmp(peril_ID,'FL')
     xlim_value = 21e6; %xlim_value = max(measures_impact_USD(4).benefit)*1.4;
-    %measures_impact_USD(scenario_i).x_axis_max = xlim_value;
+    measures_impact_USD(scenario_i).x_axis_max = xlim_value;
     measures_impact_people(scenario_i).x_axis_max = xlim_value/10000;
+elseif strcmp(m_file,'AB2') && strcmp(peril_ID,'FL')
+    measures_impact_USD(scenario_i).x_axis_max=7e8;
+    measures_impact_people(scenario_i).x_axis_max=3e4;
 end
 
 % USD
@@ -272,6 +282,8 @@ fig = climada_adaptation_bar_chart_v2(measures_impact_USD,sort_measures,scale_be
 pdf_filename = sprintf('Adaptation_bar_chart_USD_sorted_%s_%s.pdf',measures_impact_USD(u_i).peril_ID,nametag);
 print(fig,'-dpdf',[results_dir filesep pdf_filename])
        
+
+% set xlim_value for bar chart people
 scale_benefit = 10000; %scale_benefit = 20000;
 cost_unit = 'USD';
 xlim_value = max(measures_impact_people(4).benefit)*1.005;
@@ -279,12 +291,21 @@ if strcmp(measures_file,['20150918' filesep 'measures_template_for_measures_loca
     xlim_value = max(measures_impact_people(4).benefit)*1.5;
     xlim_value = 1200;
 end
+if strcmp(m_file,'AB1') && strcmp(peril_ID,'FL')
+    xlim_value = 1.2e3;
+elseif strcmp(m_file,'AB2') && strcmp(peril_ID,'FL') 
+    xlim_value = 6e3;
+end
 if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'])
     xlim_value = 2*620; %xlim_value = 620;
 end
 if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'])
-    xlim_value = 2*450;
+    xlim_value = 450; % xlim_value = 2*450;
 end
+if strcmp(measures_file,['20151014_TC' filesep 'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'])
+    xlim_value=6.5*10^3;
+end
+
 fig = climada_adaptation_bar_chart_v2(measures_impact_people,sort_measures,scale_benefit,benefit_str,'southeast','',cost_unit,xlim_value);
 pdf_filename = sprintf('Adaptation_bar_chart_people_sorted_%s_%s.pdf',measures_impact_USD(u_i).peril_ID,nametag);
 print(fig,'-dpdf',[results_dir filesep pdf_filename])

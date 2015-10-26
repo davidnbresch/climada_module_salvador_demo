@@ -1,4 +1,4 @@
-function [assets_file, damfun_file, measures_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID,m_file)
+function [assets_file, damfun_file, measures_file, m_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID,m_file)
 % set assets_file, damfun_file and measures_file for San Salvador, depending on peril_ID
 % NAME:
 %   salvador_entity_files_set
@@ -24,6 +24,7 @@ function [assets_file, damfun_file, measures_file] = salvador_entity_files_set(a
 % Lea Mueller,  muellele@gmail.com, 20150924, init
 % Jacob Anz,    j.anz@gmx.net,      20151020, added input m_file and cleanup
 % Lea Mueller, muellele@gmail.com, 20151022, add m_file option
+% Lea Mueller, muellele@gmail.com, 20151022, default m_file is '', only for FL it is 'AB1'
 %-
 
 global climada_global
@@ -34,7 +35,7 @@ if ~exist('peril_ID', 'var'), peril_ID = ''; end
 if ~exist('m_file', 'var'), m_file = ''; end
 % PARAMETERS
 if isempty(peril_ID), peril_ID = 'TC'; end
-if isempty(m_file), m_file = 'AB1'; end
+if isempty(m_file), m_file = ''; end
 
 switch peril_ID
       
@@ -46,6 +47,7 @@ switch peril_ID
             damfun_file = ['20150910_FL' filesep 'DamageFunction_150910.xlsx'];
         end
         if isempty(measures_file)
+            if isempty(m_file), m_file = 'AB1';end
             if strcmp(m_file,'AB1')   
                 measures_file = ['20151015_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'];
             elseif strcmp(m_file,'AB2')
