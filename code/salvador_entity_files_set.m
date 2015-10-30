@@ -25,6 +25,7 @@ function [assets_file, damfun_file, measures_file, m_file] = salvador_entity_fil
 % Jacob Anz,    j.anz@gmx.net,      20151020, added input m_file and cleanup
 % Lea Mueller, muellele@gmail.com, 20151022, add m_file option
 % Lea Mueller, muellele@gmail.com, 20151022, default m_file is '', only for FL it is 'AB1'
+% Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 %-
 
 global climada_global
@@ -37,61 +38,104 @@ if ~exist('m_file', 'var'), m_file = ''; end
 if isempty(peril_ID), peril_ID = 'TC'; end
 if isempty(m_file), m_file = ''; end
 
-switch peril_ID
-      
-    case 'FL'
-        if isempty(assets_file)
-            assets_file = ['20150916_FL' filesep 'entity_AMSS_FL.xls'];
+% project_dir is default, so probably we have an unexperienced user, where
+% we want to ask where to find the data, instead of using the defaults
+if strcmp(climada_global.project_dir, climada_global.data_dir)
+    % prompt for entity_file if not given
+    if isempty(assets_file) % local GUI
+        assets_file = [climada_global.data_dir filesep 'entities' filesep '*.xls*'];
+        [filename, pathname] = uigetfile(assets_file, 'Select entity (assets):');
+        if isequal(filename,0) || isequal(pathname,0)
+            return; % cancel
+        else
+            assets_file = fullfile(pathname,filename);
         end
-        if isempty(damfun_file)
-            damfun_file = ['20150910_FL' filesep 'DamageFunction_150910.xlsx'];
+    end
+    
+    if isempty(damfun_file) % local GUI
+        damfun_file = [climada_global.data_dir filesep 'entities' filesep '*.xls*'];
+        [filename, pathname] = uigetfile(damfun_file, 'Select damagefunction:');
+        if isequal(filename,0) || isequal(pathname,0)
+            return; % cancel
+        else
+            damfun_file = fullfile(pathname,filename);
         end
-        if isempty(measures_file)
-            if isempty(m_file), m_file = 'AB1';end
-            if strcmp(m_file,'AB1')   
-                measures_file = ['20151015_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'];
-            elseif strcmp(m_file,'AB2')
-                measures_file = ['20151015_FL' filesep 'measures_template_for_measures_location_A_B_2.xls'];
-            end
+    end
+    
+    if isempty(measures_file) % local GUI
+        measures_file = [climada_global.data_dir filesep 'entities' filesep '*.xls*'];
+        [filename, pathname] = uigetfile(measures_file, 'Select measures:');
+        if isequal(filename,0) || isequal(pathname,0)
+            return; % cancel
+        else
+            measures_file = fullfile(pathname,filename);
         end
-               
         
-    case 'TC'
-        if isempty(assets_file)
-            assets_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915_v2.xlsx'];
+        if ~isempty(strfind(measures_file,'A_B_1'))
+            m_file = 'AB1';
+        elseif ~isempty(strfind(measures_file,'A_B_2'))
+            m_file = 'AB2';
         end
-        if isempty(damfun_file)
-            damfun_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915_v2.xlsx'];
-        end  
-        
-        if isempty(measures_file)
-            measures_file=['20151014_TC' filesep 'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'];
-        end
-        
-    case 'LS_las_canas'
-        if isempty(assets_file)
-           %assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'];
-           assets_file = ['20150925_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LAS_CANAS2.xls'];
-        end 
-        if isempty(damfun_file)
-            damfun_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
-        end
-        if isempty(measures_file)
-           % measures_file=['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls']; 
-            measures_file=['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LAS_CANAS2.xls'];
-        end
+    end
 
-    case 'LS_acelhuate'
-        if isempty(assets_file)
-           assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
-        end 
-        if isempty(damfun_file)
-            damfun_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
-        end
-        if isempty(measures_file)
-            measures_file=['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
-        end
-        
+else
+
+    switch peril_ID
+
+        case 'FL'
+            if isempty(assets_file)
+                assets_file = ['20150916_FL' filesep 'entity_AMSS_FL.xls'];
+            end
+            if isempty(damfun_file)
+                damfun_file = ['20150910_FL' filesep 'DamageFunction_150910.xlsx'];
+            end
+            if isempty(measures_file)
+                if isempty(m_file), m_file = 'AB1';end
+                if strcmp(m_file,'AB1')   
+                    measures_file = ['20151015_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'];
+                elseif strcmp(m_file,'AB2')
+                    measures_file = ['20151015_FL' filesep 'measures_template_for_measures_location_A_B_2.xls'];
+                end
+            end
+
+
+        case 'TC'
+            if isempty(assets_file)
+                assets_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915_v2.xlsx'];
+            end
+            if isempty(damfun_file)
+                damfun_file = ['20150925_TC' filesep 'entity_AMSS_WIND-AMSS_250915_v2.xlsx'];
+            end  
+
+            if isempty(measures_file)
+                measures_file=['20151014_TC' filesep 'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'];
+            end
+
+        case 'LS_las_canas'
+            if isempty(assets_file)
+               %assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'];
+               assets_file = ['20150925_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LAS_CANAS2.xls'];
+            end 
+            if isempty(damfun_file)
+                damfun_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
+            end
+            if isempty(measures_file)
+               % measures_file=['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls']; 
+                measures_file=['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LAS_CANAS2.xls'];
+            end
+
+        case 'LS_acelhuate'
+            if isempty(assets_file)
+               assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
+            end 
+            if isempty(damfun_file)
+                damfun_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
+            end
+            if isempty(measures_file)
+                measures_file=['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
+            end
+
+    end %switch peril_ID
 end
 
 fprintf('\t - assets: %s\n', assets_file)

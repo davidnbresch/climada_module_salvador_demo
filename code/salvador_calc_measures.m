@@ -29,6 +29,7 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Jacob Anz,   j.anz@gmx.net     , 20151021, add input parameter m_file
 % Jacob Anz,   j.anz@gmx.net     , 20151026, set xlim_value for TC and cleanup
 % Jacob Anz,   j.anz@gmx.net     , 20151026, set special m_file limits only for peril FL
+% Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 %-
 
 global climada_global
@@ -45,8 +46,14 @@ if ~exist('m_file', 'var'), m_file = ''; end
 
 % PARAMETERS
 if isempty(nametag), nametag = ''; end
-if isempty(results_dir), results_dir =[climada_global.project_dir filesep sprintf('%s_',datestr(now,'YYYYmmdd')) nametag];end
-if isempty(peril_ID), peril_ID = 'FL'; end
+if isempty(results_dir), 
+    if exist([climada_global.project_dir filesep 'results'],'dir')
+        results_dir =[climada_global.project_dir filesep 'results' filesep sprintf('%s_measures_',datestr(now,'YYYYmmdd')) nametag];
+    else
+        results_dir =[climada_global.project_dir filesep sprintf('%s_measures_',datestr(now,'YYYYmmdd')) nametag];
+    end
+end
+% if isempty(peril_ID), peril_ID = 'FL'; end
 if isempty(m_file), m_file = ''; end
 
 % create results dir
@@ -60,8 +67,21 @@ else
     return
 end
 
-% load shp files
-load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
+% % load shp files
+% load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
+
+if isempty(peril_ID) && strcmp(climada_global.project_dir, climada_global.data_dir)
+    peril_name_list = {'FL Acelhuate' 'TC AMSS' 'LS Las Canas' 'LS Acelhuate'};
+    peril_list = {'FL' 'TC' 'LS_las_canas' 'LS_acelhuate'};
+    [selection,ok] = listdlg('PromptString','Select peril and area:',...
+    'ListString',peril_name_list,'SelectionMode','SINGLE');
+    pause(0.1)
+    if ~isempty(selection)
+        peril_ID = peril_list{selection};
+    end   
+end
+if isempty(peril_ID), peril_ID = 'TC'; end
+
 
 % set parameters
 climada_global.present_reference_year = 2015;
@@ -75,14 +95,43 @@ cc_scenario = 'no';
 
 
 %% Hazard selection
+
+
+% Hazard selection
 annotation_name = sprintf('%s, %s climate change',peril_ID,cc_scenario);
 hazard_set_file = sprintf('Salvador_hazard_%s_%d.mat', peril_ID, timehorizon);
 % load hazard
-load([climada_global.project_dir filesep hazard_set_file])
+if exist([climada_global.project_dir filesep hazard_set_file],'file')
+    load([climada_global.project_dir filesep hazard_set_file])
+else
+    if exist([climada_global.project_dir filesep 'hazards' filesep hazard_set_file],'file')
+        load([climada_global.project_dir filesep 'hazards' filesep hazard_set_file])
+        hazard_set_file = ['hazards' filesep  sprintf('Salvador_hazard_%s_%d.mat', peril_ID, timehorizon)];
+    else
+        clear hazard
+        hazard = climada_hazard_load;
+        if isempty(hazard), return, end
+        hazard_set_file = hazard.filename;
+        peril_ID = hazard.peril_ID;
+        if strcmp(peril_ID,'LS')
+            LS_name = {'las_canas' 'acelhuate'};
+            [selection,ok] = listdlg('PromptString','Select Landslide area:',...
+            'ListString',LS_name,'SelectionMode','SINGLE');
+            pause(0.1)
+            if ~isempty(selection)
+                peril_ID = ['LS_' LS_name{selection}];
+            else
+                fprintf('NOTE: no area chosen, aborted\n')
+                return
+            end
+        end
+    end
+end
 hazard.reference_year = climada_global.present_reference_year;
 
+
 % create and save future cc hazards (TC, LS_las_canas and LS_acelhuate)
-if strcmp(peril_ID,'TC') | strcmp(peril_ID,'LS_las_canas') | strcmp(peril_ID,'LS_acelhuate') | strcmp(peril_ID,'LS')
+if strcmp(peril_ID,'TC') || strcmp(peril_ID,'LS_las_canas') || strcmp(peril_ID,'LS_acelhuate') || strcmp(peril_ID,'LS')
     salvador_hazard_future_save(peril_ID)
 end
 
@@ -91,11 +140,20 @@ end
 % set consultant_data_entity_dir
 consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
 [assets_file, damfun_file, measures_file, m_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID,m_file);
+if isempty(assets_file)
+    return
+end
 
 % read entity assets today
-entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
+if ~isempty(strfind(assets_file,':')) || ~isempty(strfind(assets_file,'\\'))
+    % assets_file contains full path already
+    entity = climada_entity_read(assets_file,hazard);
+else
+    entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
+end
 entity.assets.reference_year = climada_global.present_reference_year;
-if isfield(entity.assets,'VALNaN') entity.assets = rmfield(entity.assets,'VALNaN'); end
+if isfield(entity.assets,'VALNaN'), entity.assets = rmfield(entity.assets,'VALNaN');end
+
 % encode assets, encode to 20 m if peril FL
 if strcmp(peril_ID,'FL')
     climada_global.max_distance_to_hazard = 20;
@@ -105,21 +163,33 @@ end
 entity = climada_assets_encode(entity,hazard,climada_global.max_distance_to_hazard);
 force_re_encode = 0;
 
+
 % read damagefunctions
-entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
+% damfun_file contains full path already
+if ~isempty(strfind(damfun_file,':')) || ~isempty(strfind(damfun_file,'\\'))
+    entity.damagefunctions = climada_damagefunctions_read(damfun_file);
+else
+    entity.damagefunctions = climada_damagefunctions_read([consultant_data_entity_dir filesep damfun_file]);
+end
 % check damage functions are defined for the given hazard intensity range
 silent_mode = 1;
 entity_out = climada_damagefunctions_check(entity,hazard,silent_mode);
 entity.damagefunctions = entity_out.damagefunctions;
 
+
 % read measures
-switch peril_ID
-    case 'FL'
-        entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
-    case 'TC'
-        entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
-    otherwise
-        entity.measures = climada_measures_read([consultant_data_entity_dir filesep measures_file]);
+% measures_file contains full path already
+if ~isempty(strfind(measures_file,':')) || ~isempty(strfind(measures_file,'\\'))
+    entity.measures = climada_measures_read(measures_file);
+else
+    switch peril_ID
+        case 'FL'
+            entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
+        case 'TC'
+            entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
+        otherwise
+            entity.measures = climada_measures_read([consultant_data_entity_dir filesep measures_file]);
+    end
 end
 % do not use special damagefunctions in measures
 if isfield(entity.measures,'damagefunctions')
@@ -171,12 +241,27 @@ if strcmp(peril_ID,'FL')
     entity_future.measures.hazard_intensity_impact_a = entity_future.measures.hazard_intensity_impact_a_moderate_cc;
 end
 cc_scenario = 'moderate';
-hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario);
 hazard = [];
-load([climada_global.project_dir filesep hazard_set_file])
-% annotation_name = sprintf('%s climate change',cc_scenario);
+hazard_set_file = strrep(hazard_set_file,...
+        sprintf('%s_%d', peril_ID, climada_global.present_reference_year),...
+        sprintf('%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario));
+if isempty(strfind(hazard_set_file,':')) || isempty(strfind(hazard_set_file,'\\')) %not yet full path
+    %hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
+    hazard_set_file = [climada_global.project_dir filesep hazard_set_file];
+end
+if exist(hazard_set_file,'file')
+    load(hazard_set_file)
+else
+    hazard = climada_hazard_load;
+end
+% hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario);
+% load([climada_global.project_dir filesep hazard_set_file])
+% % annotation_name = sprintf('%s climate change',cc_scenario);
+
 % calculate measures impact
 measures_impact(3) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
+
+
 
 % 2040, extreme cc
 if strcmp(peril_ID,'FL')
@@ -184,10 +269,17 @@ if strcmp(peril_ID,'FL')
     entity_future.measures.hazard_intensity_impact_a = entity_future.measures.hazard_intensity_impact_a_extreme_cc;
 end
 cc_scenario = 'extreme';
-hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario);
 hazard = [];
-load([climada_global.project_dir filesep hazard_set_file])
-% annotation_name = sprintf('%s climate change',cc_scenario);
+hazard_set_file = strrep(hazard_set_file,'moderate',cc_scenario);
+if exist(hazard_set_file,'file')
+    load(hazard_set_file)
+else
+    hazard = climada_hazard_load;
+end
+% hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, climada_global.future_reference_year, cc_scenario);
+% load([climada_global.project_dir filesep hazard_set_file])
+% % annotation_name = sprintf('%s climate change',cc_scenario);
+
 % calculate measures impact
 measures_impact(4) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
 
@@ -268,10 +360,11 @@ scale_benefit = 1;
 benefit_str = '';
 % xlim_value = '';
 xlim_value = max(measures_impact_USD(4).benefit)*1.005;
-if strcmp(measures_file,['20150925_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'])
-    xlim_value = max(measures_impact_USD(4).benefit)*1.4;
-    xlim_value = 12e6;
-end
+% if ~isempty(strfind(measures_file,'_A_B_2'))
+%     %strcmp(measures_file,['20150925_FL' filesep 'measures_template_for_measures_location_A_B_1.xls'])
+%     xlim_value = max(measures_impact_USD(4).benefit)*1.4;
+%     xlim_value = 12e6;
+% end
 % if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'])
 %     xlim_value = max(entity.measures.cost)*1.02;
 % end
@@ -287,7 +380,8 @@ print(fig,'-dpdf',[results_dir filesep pdf_filename])
 scale_benefit = 10000; %scale_benefit = 20000;
 cost_unit = 'USD';
 xlim_value = max(measures_impact_people(4).benefit)*1.005;
-if strcmp(measures_file,['20150918' filesep 'measures_template_for_measures_location_A_B_1.xls'])
+if ~isempty(strfind(measures_file,'_A_B_1'))
+    %strcmp(measures_file,['20150918' filesep 'measures_template_for_measures_location_A_B_1.xls'])
     xlim_value = max(measures_impact_people(4).benefit)*1.5;
     xlim_value = 1200;
 end
@@ -296,16 +390,18 @@ if strcmp(m_file,'AB1') && strcmp(peril_ID,'FL')
 elseif strcmp(m_file,'AB2') && strcmp(peril_ID,'FL') 
     xlim_value = 6e3;
 end
-if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'])
+if ~isempty(strfind(measures_file,'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'))
+    %strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'])
     xlim_value = 2*620; %xlim_value = 620;
 end
-if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'])
+if ~isempty(strfind(measures_file,'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'))
+    %strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'])
     xlim_value = 450; % xlim_value = 2*450;
 end
-if strcmp(measures_file,['20151014_TC' filesep 'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'])
-    xlim_value=6.5*10^3;
-end
-
+% if ~isempty(strfind(measures_file,'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'))
+%     %strcmp(measures_file,['20151014_TC' filesep 'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'])
+%     xlim_value=6.5*10^3;
+% end
 fig = climada_adaptation_bar_chart_v2(measures_impact_people,sort_measures,scale_benefit,benefit_str,'southeast','',cost_unit,xlim_value);
 pdf_filename = sprintf('Adaptation_bar_chart_people_sorted_%s_%s.pdf',measures_impact_USD(u_i).peril_ID,nametag);
 print(fig,'-dpdf',[results_dir filesep pdf_filename])
