@@ -2,7 +2,10 @@
 
 With this module you can calculate damages and analyze adaptation measures for the city San Salvador in El Salvador  
 
-* Get started reading the [manual](/blob/master/docs/manual_ECA_San_Salvador.pdf).
+* Get started reading the [manual](/docs/manual_ECA_San_Salvador.pdf).
+
+https://github.com/davidnbresch/climada_module_salvador_demo/blob/master/docs/manual_ECA_San_Salvador.pdf
+
 
 
 <br>
@@ -12,7 +15,7 @@ With this module you can calculate damages and analyze adaptation measures for t
 * Go to the [wiki](../../../climada/wiki/Home) and read the [introduction](../../../climada/wiki/Home) and find out what _**climada**_ and ECA is. 
 * Are you ready to start adapting? This wiki page helps you to [get started!](../../../climada/wiki/Getting-started)  
 * Read more on [natural catastrophe modelling](../../../climada/wiki/NatCat-modelling) and look at the GUI that we have prepared for you.
-* Read the [core ***climada*** manual (PDF)](../../../climada/docs/climada_manual.pdf?raw=true).
+* Read the [core ***climada*** manual (PDF)](../../../climada/blob/master/docs/climada_manual.pdf?raw=true).
 
 
 
