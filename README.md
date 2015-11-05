@@ -2,7 +2,7 @@
 
 With this module you can calculate damages and analyze adaptation measures for the city San Salvador in El Salvador  
 
-* Get started reading the [manual](/blob/master/docs/manual_ECA_San_Salvador.pdf?raw=true).
+* Get started reading the [manual](/blob/master/docs/manual_ECA_San_Salvador.pdf).
 
 
 <br>
