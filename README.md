@@ -2,7 +2,11 @@
 
 With this module you can calculate damages and analyze adaptation measures for the city San Salvador in El Salvador  
 
-* Get started reading the [manual](/docs/manual_ECA_San_Salvador.pdf).
+* Get started reading the [manual](/docs/manual_ECA_San_Salvador.pdf)
+* Type the following into the command line to calculate the waterfall graph:
+**salvador_calc_waterfall('my_first_waterfall')**
+* Type the following into the command line to calculate the adaptation cost curve and bar charts:
+**salvador_calc_measures('my_first_adaptation_curve')**
 
 
 
