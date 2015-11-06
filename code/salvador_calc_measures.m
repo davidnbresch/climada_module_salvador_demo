@@ -30,6 +30,7 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Jacob Anz,   j.anz@gmx.net     , 20151026, set xlim_value for TC and cleanup
 % Jacob Anz,   j.anz@gmx.net     , 20151026, set special m_file limits only for peril FL
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
+% Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
 %-
 
 global climada_global
@@ -428,7 +429,7 @@ for scenario_i = 1:numel(scenarios)
     if numel(sheet_name)>30
         sheet_name = sheet_name(1:30);
     end
-    salvador_EDS_ED_per_category_report(entity,measures_impact(scenario_i).EDS,xls_file,sheet_name,benefit_flag,percentage_flag);
+    climada_EDS_ED_per_category_report(entity,measures_impact(scenario_i).EDS,xls_file,sheet_name,benefit_flag,percentage_flag);
 end %scenario_i
 
 % write assets to compare measures with different assets
@@ -438,7 +439,7 @@ EDS_output = measures_impact(scenario_i).EDS;
 EDS_output(end+1) = measures_impact(1).EDS(end);
 EDS_output(end).annotation_name = sprintf('%s, %d',EDS_output(end).annotation_name,EDS_output(end).reference_year);
 EDS_output = EDS_output([end 1:end-1]);
-salvador_EDS_ED_per_category_report(entity,EDS_output,xls_file,sheet_name,'','',1);
+climada_EDS_ED_per_category_report(entity,EDS_output,xls_file,sheet_name,'','',1);
 
 % ED at centroid
 scenario_i = 3;

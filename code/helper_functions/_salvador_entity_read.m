@@ -1,4 +1,5 @@
 
+% ----- not used anymore----------
 
 % read UCA entity for Rio Acelhuate
 entity_dirname  = 'M:\BGCC\CHR\RK\RS\A_Sustainable_Development\Projects\ECA\SanSalvador\consultant_data\entity';

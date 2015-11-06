@@ -1,6 +1,11 @@
 
+% create movie for salvador TC
+% MODULE:
+%   salvador_demo
+% MODIFICATION HISTORY:
+% Lea Mueller, muellele@gmail.com, 20150401, init
+%-
 
-% Salvador movie
 
 country_name = 'El Salvador';
 [centroids,entity,entity_future] = climada_create_GDP_entity(country_name,'',1,1);

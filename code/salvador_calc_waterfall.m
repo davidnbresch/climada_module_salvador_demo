@@ -20,6 +20,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, muellele@gmail.com, 20150925, set max_distance_to_hazard to 10^6 if not FL
 % Lea Mueller, muellele@gmail.com, 20151020, do not show legend in waterfall graph
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
+% Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
 %-
 
 
@@ -247,7 +248,7 @@ benefit_flag = 0;
 assets_flag = 1;
 EDS(5) = EDS(1);
 xls_file = [results_dir filesep 'ED_' peril_ID '_2015_2040_' datestr(now,'YYYYmmdd') '_' nametag '.xlsx'];
-output_report = salvador_EDS_ED_per_category_report(entity_ori, EDS, xls_file,'ED_per_category',benefit_flag,0,assets_flag);
+output_report = climada_EDS_ED_per_category_report(entity_ori, EDS, xls_file,'ED_per_category',benefit_flag,0,assets_flag);
 
 % save EDS
 EDS_filename = strrep(xls_file,'.xlsx','.mat');
@@ -374,8 +375,8 @@ diary off
 % % peril_ID    = 'FL';
 % ED_filename = sprintf('ED_%s_%d_cc_%s_%s.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
 % climada_EDS_ED_at_centroid_report_xls(EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
-% output_report = salvador_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
-% % output_report = salvador_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
+% output_report = climada_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
+% % output_report = climada_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
 
 
 

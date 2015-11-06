@@ -1,4 +1,10 @@
 
+% -----NOT USED ANYMORE ---
+
+
+% create hazard Landslide (distance intenstiy) 
+%  - based on hazard LS soil depth
+
 
 %% create test entity
 % lon = linspace(min(hazard.lon),max(hazard.lon),20);

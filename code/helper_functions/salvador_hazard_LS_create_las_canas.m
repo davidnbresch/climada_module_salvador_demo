@@ -1,4 +1,10 @@
 
+
+%--------------------------------------------------------------------------
+% this is not used anymore
+% with this script, the landslide hazard for las canas was created
+%--------------------------------------------------------------------------
+
 % load assets
 load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
 
@@ -10,9 +16,9 @@ load([climada_global.project_dir filesep 'Salvador_hazard_LS_2015'])
 load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
 
 
-%-----------------------------------
-%% create landslide hazard
-%-----------------------------------
+%----------------------------------------
+%% create landslide hazard for LAS CANAS
+%----------------------------------------
 
 % module data dir
 module_data_dir =[climada_global.modules_dir filesep 'salvador_demo' filesep 'data'];
@@ -21,110 +27,11 @@ module_data_dir =[climada_global.modules_dir filesep 'salvador_demo' filesep 'da
 ls_dir = [climada_global.project_dir filesep 'LS' filesep];
 
 % load assets
-load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
+load([climada_global.project_dir filesep 'Salvador_entity_2015_LS']) % las canas
 
 
 
-
-
-%% create dem/centroids for ACELHUATE.
-
-% load dem 30m entire AMSS
-load([climada_global.project_dir filesep 'LS' filesep 'dem_30m_AMSS'])
-% resolution_m = 30;
-% check_plot = 1;
-% [dem, resolution_m] = salvador_dem_read('', resolution_m, check_plot);
-
-% load assets acelhuate
-load([climada_global.project_dir filesep 'Salvador_entity_2015_FL'])
-
-% select FL assets
-is_selected = climada_assets_select(entity,'FL');
-delta_lon = 0.01; %
-% delta_lon = 0.005;
-delta_lon = 0.05; %
-lon_min = min(entity.assets.lon(is_select))-delta_lon;
-lon_max = max(entity.assets.lon(is_select))+delta_lon;
-lat_min = min(entity.assets.lat(is_select))-delta_lon;
-lat_max = max(entity.assets.lat(is_select))+delta_lon;
-
-% create rectangle around acelhuate
-rectangle_acelhuate.lon = [lon_min lon_max lon_max lon_min lon_min];
-rectangle_acelhuate.lat = [lat_min lat_min lat_max lat_max lat_min];
-figure
-
-% plot DEM and assets
-% set figure parameters
-markersize = 3;
-marker = 's';
-cbar_on = 1;
-axlim = [lon_min lon_max lat_min lat_max];
-figure
-plotclr(dem.lon, dem.lat, dem.value,marker,markersize,cbar_on,550,1000);
-hold on
-plot3(entity.assets.lon(is_selected), entity.assets.lat(is_selected), ones(size(entity.assets.lon(is_selected)))*3000, 'xk','markersize',markersize-1)
-plot3(rectangle_acelhuate.lon, rectangle_acelhuate.lat, ones(size(rectangle_acelhuate.lon))*3000, '-or')
-axis(axlim)
-
-% only use dem values that are within Acelhuate rectangle
-indx_valid = inpoly([dem.lon' dem.lat'],[rectangle_acelhuate.lon' rectangle_acelhuate.lat']);
-% sum(indx_valid)
-% figure; plot(dem.lon(indx_valid),dem.lat(indx_valid),'.')
-
-% create temporary centroids with lon, lat, elevation
-centroids.lon     = dem.lon(indx_valid);
-centroids.lat     = dem.lat(indx_valid);
-centroids.elevation_m = dem.value(indx_valid);
-F_DEM = scatteredInterpolant(centroids.lon',centroids.lat',centroids.elevation_m');
-
-% create centroids on a regular grid
-res_km = 0.03;     
-centroids = climada_generate_centroids(rectangle_canas,res_km,0,'NO_SAVE',1);
-centroids.admin0_ISO3 = 'SLV'; 
-% compute centroids elevation
-centroids.elevation_m = F_DEM(centroids.lon',centroids.lat')';
-centroids.basin_ID = ones(size(centroids.lon));
-centroids = centroids_TWI(centroids, 0);
-save([ls_dir 'centroids_acelhuate_30m'],'centroids')
-
-% centroids.centroid_ID = 1:numel(centroids.lon);
-% centroids.onLand = ones(size(centroids.lon));
-% centroids.comment = dem.comment;
-% % add geographical features
-% centroids = centroids_TWI(centroids, 1);
-% add flow direction for the next 10 centroids
-% centroids = climada_flow_find(centroids);
-% save([ls_dir 'centroids_las_canas_30m'],'centroids')
-% load([ls_dir 'centroids_las_canas_30m'])
-
-
-
-check_plot = 1;
-[dem, resolution_m] = salvador_dem_read('', resolution_m, check_plot);
-
-% only use dem values that are close to the hazard
-indx_valid = inpoly([dem.lon' dem.lat'],[rectangle_canas.lon' rectangle_canas.lat']);
-% sum(indx_valid)
-% plot(dem.lon(indx_valid),dem.lat(indx_valid),'.')
-centroids.lon     = dem.lon(indx_valid);
-centroids.lat     = dem.lat(indx_valid);
-centroids.elevation_m = dem.value(indx_valid);
-F_DEM = scatteredInterpolant(centroids.lon',centroids.lat',centroids.elevation_m');
-
-res_km = 0.03;      % Centroids resolution
-centroids = climada_generate_centroids(rectangle_canas,res_km,0,'NO_SAVE',1);
-centroids.admin0_ISO3 = 'SLV'; 
-% Compute centroids elevation
-centroids.elevation_m = F_DEM(centroids.lon',centroids.lat')';
-centroids.basin_ID = ones(size(centroids.lon));
-centroids = centroids_TWI(centroids, 1);
-save([ls_dir 'centroids_las_canas_30m_v1'],'centroids')
-
-
-
-
-
-%% create ls hazard
+%% create ls hazard LAS CANAS
 
 n_events = 1000;
 wiggle_factor = 0.35; 
@@ -132,7 +39,7 @@ TWI_condition = 0.9;
 wiggle_factors_slope = 0.1; 
 slope_condition = 0.45;
 n_downstream_cells = 2;
-hazard_set_file = [ls_dir 'Salvador_hazard_LS_2015.mat'];
+hazard_set_file = [ls_dir 'Salvador_hazard_LS_2015_las_canas.mat'];
 hazard  = climada_ls_hazard_set_simple(centroids,n_events,hazard_set_file,wiggle_factor,TWI_condition,wiggle_factors_slope,slope_condition,n_downstream_cells,polygon_canas);
 
 

@@ -1,4 +1,13 @@
 
+
+% create waterfall and adapatation measures for San Salvadoro
+% MODULE:
+%   salvador_demo
+% MODIFICATION HISTORY:
+% Lea Mueller, muellele@gmail.com, 20150901, init
+%-
+
+
 nametag = 'measures_LS_las_canas_v2';
 assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'];
 damfun_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];
@@ -192,11 +201,11 @@ measures_impact_filename = [climada_global.project_dir filesep sprintf('measures
 ED_filename = sprintf('ED_%s_%d_%s_cc_measures_%s_%s.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'),nametag);
 xls_file = [climada_global.project_dir filesep 'REPORTS' filesep ED_filename];
 climada_EDS_ED_at_centroid_report_xls(measures_impact(u_i).EDS, xls_file, 'ED_at_centroid')
-output_report = salvador_EDS_ED_per_category_report(entity, measures_impact(u_i).EDS, xls_file,'ED_per_category',1,1);
+output_report = climada_EDS_ED_per_category_report(entity, measures_impact(u_i).EDS, xls_file,'ED_per_category',1,1);
 
 
 % ED_filename = sprintf('ED_%s_%d_%s_cc_measures_%s_orig.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
-% output_report = salvador_EDS_ED_per_category_report(entity, EDS(1), [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category',0,0);
+% output_report = climada_EDS_ED_per_category_report(entity, EDS(1), [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category',0,0);
 
 
 
@@ -328,7 +337,7 @@ print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filena
 benefit_flag = 0;
 EDS(5) = EDS(1);
 xls_file = [climada_global.project_dir filesep 'REPORTS' filesep 'ED_FL_2015_2040_' datestr(now,'YYYYmmdd')];
-output_report = salvador_EDS_ED_per_category_report(entity, EDS, xls_file,'ED_per_category',benefit_flag);
+output_report = climada_EDS_ED_per_category_report(entity, EDS, xls_file,'ED_per_category',benefit_flag);
 
 
 
@@ -345,8 +354,8 @@ EDS = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 % peril_ID    = 'FL';
 ED_filename = sprintf('ED_%s_%d_cc_%s_%s.xls', peril_ID, timehorizon,cc_scenario,datestr(now,'YYYYmmdd'));
 climada_EDS_ED_at_centroid_report_xls(EDS,[climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_at_centroid')
-output_report = salvador_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
-% output_report = salvador_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
+output_report = climada_EDS_ED_per_category_report(entity, EDS, [climada_global.project_dir filesep 'REPORTS' filesep ED_filename],'ED_per_category');
+% output_report = climada_EDS_ED_per_category_report(entity, EDS,'NO_xls_file');
 
 
 

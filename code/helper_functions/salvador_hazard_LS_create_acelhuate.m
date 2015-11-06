@@ -1,3 +1,8 @@
+%--------------------------------------------------------------------------
+% this is not used anymore
+% with this script, the landslide hazard for acelhuate was created
+%--------------------------------------------------------------------------
+
 
 % % load assets
 % load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
@@ -9,9 +14,9 @@
 % load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
 
 
-%-----------------------------------
-%% create landslide hazard
-%-----------------------------------
+%-----------------------------------------
+%% create landslide hazard for Acelhuate
+%-----------------------------------------
 
 % module data dir
 module_data_dir =[climada_global.modules_dir filesep 'salvador_demo' filesep 'data'];
@@ -120,6 +125,7 @@ centroids.elevation_m = F_DEM(centroids.lon',centroids.lat')';
 centroids.basin_ID = ones(size(centroids.lon));
 centroids.centroid_ID = 1:numel(centroids.lon);
 centroids.onLand = ones(size(centroids.lon));
+% Calculate flood scores and topographic wetness indices
 centroids = centroids_TWI(centroids, 0);
 % save([ls_dir 'centroids_acelhuate_30m'],'centroids')
 % save([ls_dir 'centroids_acelhuate_30m_v2'],'centroids')
@@ -291,15 +297,15 @@ pdf_filename = sprintf('LS_TWI_norm.pdf');
 % TWI_norm(TWI_norm>1.11) = 1.11;
 % centroids.TWI_norm = TWI_norm;
 
-
+% acelhuate parameters
 n_events = 1000;
 wiggle_factor = 0.35; 
 TWI_condition = 1.25;
 wiggle_factors_slope = 0.18; 
 slope_condition = 0.28; %slope_condition = 0.5;
 n_downstream_cells = 2;
-% n_events = 1000;
 
+% las canas parameters
 % wiggle_factor = 0.35; 
 % TWI_condition = 0.9;
 % wiggle_factors_slope = 0.1; 

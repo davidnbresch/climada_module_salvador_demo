@@ -1,4 +1,25 @@
 function hazard = salvador_hazard_read
+% read FL hazard from GFA consultants/Maxime and create climada hazard structure
+% MODULE:
+%   salvador_demo
+% NAME:
+%   salvador_hazard_read
+% PURPOSE:
+%   read FL hazard from GFA consultants/Maxime and create climada hazard 
+%   structure for today's Acelhuate flood hazard, moderate and extreme
+%   climate change
+% CALLING SEQUENCE:
+%   hazard = salvador_hazard_read
+% EXAMPLE:
+%   hazard = salvador_hazard_read
+% INPUTS:
+%   none, directory is hardwired, please check
+% OPTIONAL INPUT PARAMETERS:
+% OUTPUTS:
+%   hazard: a climada hazard structure, containing FL acelhuate flood depth
+% MODIFICATION HISTORY:
+% Lea Mueller, muellele@gmail.com, 20150801, initial
+%-
 
 
 global climada_global % access to global variables
@@ -55,15 +76,15 @@ for h_i = 1:length(hazard_names)
                 reference_year = 2015;
                 hazard_set_file_ = sprintf('%s_%d.mat',hazard_set_file,2015);
                 
-            %case 'moderate'
-            %    folder_ = 'Floods_2030_CCMod\';
-            %    reference_year = 2030;
-            %    hazard_set_file_ = sprintf('%s_cc_%d_%s.mat',hazard_set_file,reference_year,cc_scenario{cc_i});
+            case 'moderate'
+               folder_ = 'Floods_2030_CCMod\';
+               reference_year = 2030;
+               hazard_set_file_ = sprintf('%s_cc_%d_%s.mat',hazard_set_file,reference_year,cc_scenario{cc_i});
                  
-            %case 'extreme'
-            %    folder_ = 'Floods_2030_CCHigh\';
-            %    reference_year = 2030;
-            %    hazard_set_file_ = sprintf('%s_cc_%d_%s.mat',hazard_set_file,reference_year,cc_scenario{cc_i});
+            case 'extreme'
+               folder_ = 'Floods_2030_CCHigh\';
+               reference_year = 2030;
+               hazard_set_file_ = sprintf('%s_cc_%d_%s.mat',hazard_set_file,reference_year,cc_scenario{cc_i});
         end
         
         % read hazard from asci-file
