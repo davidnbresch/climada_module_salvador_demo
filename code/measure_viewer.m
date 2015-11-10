@@ -55,6 +55,7 @@ function varargout = measure_viewer(varargin)
 
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
+% Lea Mueller, muellele@gmail.com, 20151110, save kmz to data/results
 %-
 
 % Last Modified by GUIDE v2.5 05-Nov-2015 14:22:03
@@ -699,8 +700,19 @@ global climada_global container
 container.set_axis=1;
 pushbutton2_Callback(hObject, eventdata, handles);
 path_now=pwd;
-cd([ climada_global.modules_dir '\climada_module_kml_toolbox\code']);
-k = kml;
+
+% this line is not used, can lead to errors
+% 1) use filesep instead of \, as this works on different operating systems (Windows, Mac)
+% 2) do not use hardwired module names as this can be changed by the user
+%cd([ climada_global.modules_dir '\climada_module_kml_toolbox\code']);
+% do actively set the directory where the kmz file is stored, I suggest to
+% use data/results
+% Jacob, please set a usefule name, so that the user find the created kmz results and know what he/she plotted
+plot_name = 'set_as_useful_name';
+google_earth_save = [climada_global.data_dir filesep 'results' filesep plot_name '.kmz'];
+% save kmz file
+k = kml(google_earth_save);
+% k = kml;
 %manually adjust the kml output to the topography (E.g. rivers) as the
 %default is off
 %west, east, south, north extension and layer angle (rotation) can be set
