@@ -1,19 +1,19 @@
-function varargout = measure_viewer(varargin)
-% MEASURE_VIEWER MATLAB code for measure_viewer.fig
-%      MEASURE_VIEWER, by itself, creates a new MEASURE_VIEWER or raises the existing
+function varargout = climada_measure_viewer(varargin)
+% climada_measure_viewer MATLAB code for climada_measure_viewer.fig
+%      climada_measure_viewer, by itself, creates a new climada_measure_viewer or raises the existing
 %      singleton*.
 %
-%      H = MEASURE_VIEWER returns the handle to a new MEASURE_VIEWER or the handle to
+%      H = climada_measure_viewer returns the handle to a new climada_measure_viewer or the handle to
 %      the existing singleton*.
 %
-%      MEASURE_VIEWER('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MEASURE_VIEWER.M with the given input arguments.
+%      climada_measure_viewer('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in climada_measure_viewer.M with the given input arguments.
 %
-%      MEASURE_VIEWER('Property','Value',...) creates a new MEASURE_VIEWER or raises the
+%      climada_measure_viewer('Property','Value',...) creates a new climada_measure_viewer or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before measure_viewer_OpeningFcn gets called.  An
+%      applied to the GUI before climada_measure_viewer_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to measure_viewer_OpeningFcn via varargin.
+%      stop.  All inputs are passed to climada_measure_viewer_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
@@ -23,13 +23,13 @@ function varargout = measure_viewer(varargin)
 % MODULE:
 %   viewer
 % NAME:
-%   measure_viewer
+%   climada_measure_viewer
 % PURPOSE:
 %   plots entities, assets and damage
 % CALLING SEQUENCE:
-%   measure_viewer
+%   climada_measure_viewer
 %EXAMPLE
-%   measure_viewer
+%   climada_measure_viewer
 % INPUT:
 %   (all inputs are asked for by the GUI)
 %   entity: an entity structure, see e.g. climada_entity_load and climada_entity_read
@@ -55,17 +55,16 @@ function varargout = measure_viewer(varargin)
 
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
-% Lea Mueller, muellele@gmail.com, 20151110, save kmz to data/results
 %-
 
-% Last Modified by GUIDE v2.5 05-Nov-2015 14:22:03
+% Last Modified by GUIDE v2.5 11-Nov-2015 16:29:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @measure_viewer_OpeningFcn, ...
-    'gui_OutputFcn',  @measure_viewer_OutputFcn, ...
+    'gui_OpeningFcn', @climada_measure_viewer_OpeningFcn, ...
+    'gui_OutputFcn',  @climada_measure_viewer_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -78,19 +77,18 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
 % gui varibale initialization
-function measure_viewer_OpeningFcn(hObject, eventdata, handles, varargin)
+function climada_measure_viewer_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to measure_viewer (see VARARGIN)
+% varargin   command line arguments to climada_measure_viewer (see VARARGIN)
 %global container
 %global climada_global
-% Choose default command line output for measure_viewer
+% Choose default command line output for climada_measure_viewer
 handles.output = hObject;
-global container
+%global container
 %climada_global = evalin('base', 'climada_global');
 %if ~climada_init_vars,return;end % init/import global variables
 
@@ -99,28 +97,32 @@ climada_logo(hObject, eventdata, handles)
 
 % Update handles structure
 %set all initial paramters
-container.set_axis=0;
+set(handles.checkbox3,'Value',1);
+set(handles.radiobutton9,'Value',1);
+set(handles.radiobutton2,'Value',1);
 %imagesc(uipanel8
 guidata(hObject, handles);
 
 function climada_logo(hObject, eventdata, handles)
 global climada_global
-try
-    path_now=pwd;
-    cd([ climada_global.modules_dir '\climada_modules_salvador_demo\docs']);
-    axes(handles.axes2)
-    set(handles.axes2,'visible','off')
-    hold on;
-    imagesc(imread('climada_sign.png'));
-    set(handles.axes2,'YDir','reverse');
-    %axis visibility off
-    set(handles.axes2,'color','none')
-    %set(handles.axes2,'xtick','off')
-    cd(path_now);
-end
+    try
+        module_data_dir = [fileparts(fileparts(mfilename('fullpath'))) filesep 'docs'];
+        logo_path= [module_data_dir filesep 'climada_sign.png'];
+        axes(handles.axes2)
+        set(handles.axes2,'visible','off')
+        hold on;
+        imagesc(imread(logo_path));
+        set(handles.axes2,'YDir','reverse');
+        set(handles.axes2,'color','none')
+        uistack(handles.axes2,'bottom');
+    catch
+        set(handles.axes2,'color','none')
+        set(handles.axes2,'visible','off')
+        
+    end
 
 % --- Outputs from this function are returned to the command line.
-function varargout = measure_viewer_OutputFcn(hObject, eventdata, handles)
+function varargout = climada_measure_viewer_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -151,6 +153,7 @@ end
 
 set(handles.listbox1,'String',measures);
 container.index_measures = get(hObject,'Value');
+container.measures_list=measures;
 assignin('base','container',container);
 assignin('base','index_measures',container.index_measures);
 
@@ -282,8 +285,8 @@ function radiobutton3_Callback(hObject, eventdata, handles)
 global container
 container.rb3=get(hObject,'Value');
 %calculate the benefit
-for i=1:length(container.measures_impact(1).EDS)
-    container.benefit{i}=container.measures_impact(1).EDS(length(container.measures_impact(1).EDS)).ED_at_centroid-container.measures_impact(1).EDS(i).ED_at_centroid;
+for i=1:length(container.measures_impact(container.timestamp).EDS)
+    container.benefit{i}=container.measures_impact(container.timestamp).EDS(length(container.measures_impact(container.timestamp).EDS)).ED_at_centroid-container.measures_impact(container.timestamp).EDS(i).ED_at_centroid;
 end
 if container.rb3==1
     set(handles.radiobutton2,'Value',0);
@@ -407,12 +410,15 @@ message=sprintf('recognized %s peril',container.rb_peril);
 if container.rb_peril=='FL'
     container.measures_impact_FL=container.measures_impact;
     container.entity_FL=container.entity;
+    set(handles.radiobutton6,'Value',1);set(handles.radiobutton7,'Value',0);set(handles.radiobutton8,'Value',0);
 elseif container.rb_peril=='TC'
     container.measures_impact_TC=container.measures_impact;
     container.entity_TC=container.entity;
+    set(handles.radiobutton7,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton8,'Value',0);
 elseif container.rb_peril=='LS'
     container.measures_impact_LS=container.measures_impact;
     container.entity_LS=container.entity;
+    set(handles.radiobutton8,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton7,'Value',0);
 end
 msgbox(message);
 
@@ -461,7 +467,10 @@ cla reset
 clear cbar
 cla (handles.axes1,'reset')
 axes(handles.axes1);
-markersize=2;
+%set(handles.axes1,'layer','top')
+
+% markersize=2;
+edit5_Callback(hObject, eventdata, handles);
 miv=0.1;
 
 %select for USD or people
@@ -517,50 +526,55 @@ else
         elseif strcmp(container.rb_peril,'TC'); container.peril_color='TC';
         elseif strcmp(container.rb_peril,'TC'); container.peril_color='MS';
         end
-        if container.index_categories==9;
+        if container.index_categories==length(unique(container.entity.assets.Category))+1;
             if max(selection.point_value)<1;miv=[]; end
             container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
-        else
-            
+            set(handles.text1,'String',sum(selection.point_value));
+        else            
             if max(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected))<1;miv=[];end
             container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
             container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
             container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected);
+            set(handles.text1,'String',sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)));
         end
-        set(handles.text1,'String',sum(container.measures_impact(1).EDS(container.index_measures).assets.lat(is_selected)));
-        
+                
         %assets
     elseif  container.rb2==1;
         container.peril_color='assets';
-        if container.index_categories==9;
+        if container.index_categories==length(unique(container.entity.assets.Category))+1;
             if max(selection.point_value)<1;miv=[]; end
             container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
+            set(handles.text2,'String',sum(selection.point_value));
         else
             if max(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected))<1;miv=[];end
             container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
             container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
             container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected);
+            set(handles.text2,'String',sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)));
         end
-        set(handles.text2,'String',sum(container.measures_impact(1).EDS(container.index_measures).assets.Value(is_selected)));
-        
+                
         %benefit
     elseif container.rb3==1;
+        radiobutton3_Callback(hObject, eventdata, handles);
         container.peril_color='benefit';
-        if container.index_categories==9;
+        if container.index_categories==length(unique(container.entity.assets.Category))+1;
             if max(selection.point_value)<1;miv=[]; end
             container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
+            set(handles.text3,'String',sum(selection.point_value));
         else
             if max(container.benefit{1,container.index_measures}(is_selected))<1;miv=[]; end
             container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
             container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
             container.plot_value=container.benefit{1,container.index_measures}(is_selected);
+            set(handles.text3,'String',sum(container.benefit{1,container.index_measures}(is_selected)));
         end
-        set(handles.text3,'String',sum(container.benefit{1,container.index_measures}(is_selected)));
+        
     end
     if sum(container.plot_value)==0;
         message='no values to plot, all selected values are 0';
     else
-        cbar=plotclr(container.plot_lon,container.plot_lat,container.plot_value,'s',markersize,1,miv,[],climada_colormap(container.peril_color),[],1);
+        %final plotting
+        cbar=plotclr(container.plot_lon,container.plot_lat,container.plot_value,'s',container.markersize,1,miv,[],climada_colormap(container.peril_color),[],1);
         set(get(cbar,'ylabel'),'String', 'value per pixel (exponential scale)' ,'fontsize',12);
         message='values plotted';
     end
@@ -572,12 +586,16 @@ else
     
     if container.set_axis==1
         if isfield(container, 'axis_ol') && isfield(container, 'axis_or') && isfield(container, 'axis_ul') && isfield(container, 'axis_ur')
-            climada_figure_axis_limits_equal_for_lat_lon([container.axis_ul container.axis_ur container.axis_ol container.axis_or])
-            
+
+            climada_figure_axis_limits_equal_for_lat_lon([container.axis_ul container.axis_ur container.axis_ol container.axis_or])          
         else
             set(handles.text15,'String','Please enter axis limits');
-        end
-        
+            edit1_Callback(hObject, eventdata, handles);edit2_Callback(hObject, eventdata, handles);
+            edit3_Callback(hObject, eventdata, handles);edit4_Callback(hObject, eventdata, handles);
+            if isfield(container, 'axis_ol')
+                pushbutton2_Callback(hObject, eventdata, handles)
+            end            
+        end        
     end
     hold on
 end
@@ -603,8 +621,10 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global container
-[filename, pathname] = uigetfile({'*.mat'}, 'Select shape file:');
+global container climada_global
+
+open_path=[climada_global.data_dir filesep 'results'];
+[filename, pathname] = uigetfile({'*.mat'}, 'Select shape file:',open_path);
 filename_tot = fullfile(pathname,filename);
 container.shapes=open(filename_tot);
 
@@ -698,34 +718,49 @@ function pushbutton8_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global climada_global container
 container.set_axis=1;
-pushbutton2_Callback(hObject, eventdata, handles);
-path_now=pwd;
 
-% this line is not used, can lead to errors
-% 1) use filesep instead of \, as this works on different operating systems (Windows, Mac)
-% 2) do not use hardwired module names as this can be changed by the user
-%cd([ climada_global.modules_dir '\climada_module_kml_toolbox\code']);
-% do actively set the directory where the kmz file is stored, I suggest to
-% use data/results
-% Jacob, please set a usefule name, so that the user find the created kmz results and know what he/she plotted
-plot_name = 'set_as_useful_name';
+%manually adjust the kml output to the topography (E.g. rivers) as the default is dislocated
+%west, east, south, north extension and layer angle (rotation) can be set
+if strcmp(container.rb_peril,'FL')
+    offset.west=+0.019; %+0.020;        +0.013      +0.020;                     display setting:    oly- 13.7
+    offset.east=+0.0145; %0.016          +0.013      +0.015;                                        uly- 13.67
+    offset.south=+0.065; %+0.05;        +0.065      +0.065;                                         ulx- -89.25
+    offset.north=-0.006; %-0.0025;     -0.0045     -0.0045;                                         urx- -89.15
+    set(handles.edit1,'String','13.67');set(handles.edit2,'String','13.7');      
+    set(handles.edit3,'String','-89.25');set(handles.edit4,'String','-89.15');         
+        container.axis_ur=-89.15; container.axis_ul=-89.25;
+        container.axis_ol=13.67;  container.axis_or=13.7;
+elseif strcmp(container.rb_peril,'TC')
+    offset.west=+0.06;
+    offset.east=+0.046;
+    offset.south=+0.19;
+    offset.north=+0.04;
+    set(handles.edit1,'String','13.6');set(handles.edit2,'String','13.85');      
+    set(handles.edit3,'String','-89.35');set(handles.edit4,'String','-89');
+        container.axis_ur=-89; container.axis_ul=-89.35;
+        container.axis_ol=13.6;  container.axis_or=13.85;
+elseif strcmp(container.rb_peril,'LS')    
+    offset.west=+0.005;
+    offset.east=+0.003;
+    offset.south=+0.018;
+    offset.north=+0.007;
+    set(handles.edit1,'String','13.69');set(handles.edit2,'String','13.725');      
+    set(handles.edit3,'String','-89.145');set(handles.edit4,'String','-89.1');
+        container.axis_ur=-89.1; container.axis_ul=-89.145;
+        container.axis_ol=13.69;  container.axis_or=13.725;
+end
+
+pushbutton2_Callback(hObject, eventdata, handles);
+
+scenario_names={'currentstate';'econgrowth';'modcc';'extrcc'};
+plot_name = [container.rb_peril '_' container.unit_criterium '_' container.type '_' scenario_names{container.timestamp}...
+    '_' container.measures_list{container.index_measures} '_category_' ...
+    num2str(container.index_categories)];
 google_earth_save = [climada_global.data_dir filesep 'results' filesep plot_name '.kmz'];
 % save kmz file
-k = kml(google_earth_save);
-% k = kml;
-%manually adjust the kml output to the topography (E.g. rivers) as the
-%default is off
-%west, east, south, north extension and layer angle (rotation) can be set
-offset.west=+0.023;
-offset.east=+0.019;
-offset.south=+0.05;       
-offset.north=-0.0025;     
-k.transfer(handles.axes1,offset,'rotation',+3)
+k = kml(google_earth_save);    
+k.transfer(handles.axes1,offset,'rotation',+0) %+3
 k.run
-
-%run
-uiwait(msgbox('Please open the .kmz file manually from its folder, its stored in the code folder of the climada_module_kml_toolbox'));
-cd(path_now);
 
 % Load file
 function popupmenu1_Callback(hObject, eventdata, handles)
@@ -1097,3 +1132,27 @@ if container.rb_12==1
     container.rb11=0;
     container.rb10=0;
 end
+
+
+function edit5_Callback(hObject, eventdata, handles)
+% hObject    handle to edit5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit5 as text
+%        str2double(get(hObject,'String')) returns contents of edit5 as a double
+global container
+container.markersize=str2double(get(handles.edit5,'String'));
+
+% --- Executes during object creation, after setting all properties.
+function edit5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
