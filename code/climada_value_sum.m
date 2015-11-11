@@ -63,7 +63,6 @@ if exist('measures_impact','var')
     catch
         msgbox(message);
     end
-    
 end
 
 categories=unique(entity.assets.Category);
@@ -137,6 +136,3 @@ end
             selection.point_lat(j)=unique(t.coord_tot(t_indx{j},2));
     end
 end
-
-
-
