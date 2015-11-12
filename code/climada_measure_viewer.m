@@ -57,7 +57,7 @@ function varargout = climada_measure_viewer(varargin)
 % Jacob Anz, j.anz@gmx.net, 20151106 init
 %-
 
-% Last Modified by GUIDE v2.5 11-Nov-2015 16:29:53
+% Last Modified by GUIDE v2.5 11-Nov-2015 17:27:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -84,7 +84,7 @@ function climada_measure_viewer_OpeningFcn(hObject, eventdata, handles, varargin
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to climada_measure_viewer (see VARARGIN)
-%global container
+global container
 %global climada_global
 % Choose default command line output for climada_measure_viewer
 handles.output = hObject;
@@ -98,13 +98,16 @@ climada_logo(hObject, eventdata, handles)
 % Update handles structure
 %set all initial paramters
 set(handles.checkbox3,'Value',1);
+container.set_axis=1;
 set(handles.radiobutton9,'Value',1);
+container.timestamp=1;
 set(handles.radiobutton2,'Value',1);
+container.rb2=1;container.rb1=0;container.rb3=0;
 %imagesc(uipanel8
 guidata(hObject, handles);
 
 function climada_logo(hObject, eventdata, handles)
-global climada_global
+
     try
         module_data_dir = [fileparts(fileparts(mfilename('fullpath'))) filesep 'docs'];
         logo_path= [module_data_dir filesep 'climada_sign.png'];
@@ -114,7 +117,7 @@ global climada_global
         imagesc(imread(logo_path));
         set(handles.axes2,'YDir','reverse');
         set(handles.axes2,'color','none')
-        uistack(handles.axes2,'bottom');
+        %uistack(handles.axes2,'bottom');
     catch
         set(handles.axes2,'color','none')
         set(handles.axes2,'visible','off')
@@ -411,14 +414,20 @@ if container.rb_peril=='FL'
     container.measures_impact_FL=container.measures_impact;
     container.entity_FL=container.entity;
     set(handles.radiobutton6,'Value',1);set(handles.radiobutton7,'Value',0);set(handles.radiobutton8,'Value',0);
+    container.axis_ur=-89.15; container.axis_ul=-89.25;
+    container.axis_ol=13.67;  container.axis_or=13.7;
 elseif container.rb_peril=='TC'
     container.measures_impact_TC=container.measures_impact;
     container.entity_TC=container.entity;
     set(handles.radiobutton7,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton8,'Value',0);
+    container.axis_ur=-89; container.axis_ul=-89.35;
+    container.axis_ol=13.6;  container.axis_or=13.85;
 elseif container.rb_peril=='LS'
     container.measures_impact_LS=container.measures_impact;
     container.entity_LS=container.entity;
     set(handles.radiobutton8,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton7,'Value',0);
+    container.axis_ur=-89.1; container.axis_ul=-89.145;
+    container.axis_ol=13.69;  container.axis_or=13.725;
 end
 msgbox(message);
 
@@ -460,6 +469,7 @@ global container
 
 %default values=
 container.unit_criterium='';
+%checkbox3_Callback(hObject, eventdata, handles); %set_axis
 
 set(handles.figure1, 'pointer', 'watch')
 drawnow;
@@ -500,7 +510,7 @@ end
 if ~isfield(container,'rb_peril')
     set(handles.text15,'String','Please select a peril');
     
-elseif container.measures_impact(container.timestamp).peril_ID ~=container.rb_peril
+elseif container.measures_impact(1).peril_ID ~=container.rb_peril
     set(handles.text15,'String','Selected peril does not match measures impact file, please select a different peril');
     return
 end
@@ -1144,7 +1154,7 @@ function edit5_Callback(hObject, eventdata, handles)
 global container
 container.markersize=str2double(get(handles.edit5,'String'));
 
-% --- Executes during object creation, after setting all properties.
+% % --- Executes during object creation, after setting all properties.
 function edit5_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1156,3 +1166,18 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
+% --- Executes during object creation, after setting all properties.
+function axes1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to axes1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate axes1
+
+
+% --- Executes during object creation, after setting all properties.
+function radiobutton9_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to radiobutton9 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
