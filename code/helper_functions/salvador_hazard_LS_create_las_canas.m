@@ -40,7 +40,7 @@ wiggle_factors_slope = 0.1;
 slope_condition = 0.45;
 n_downstream_cells = 2;
 hazard_set_file = [ls_dir 'Salvador_hazard_LS_2015_las_canas.mat'];
-hazard  = climada_ls_hazard_set_simple(centroids,n_events,hazard_set_file,wiggle_factor,TWI_condition,wiggle_factors_slope,slope_condition,n_downstream_cells,polygon_canas);
+hazard  = climada_ls_hazard_set_binary(centroids,n_events,hazard_set_file,wiggle_factor,TWI_condition,wiggle_factors_slope,slope_condition,n_downstream_cells,polygon_canas);
 
 
 % encode to distance
