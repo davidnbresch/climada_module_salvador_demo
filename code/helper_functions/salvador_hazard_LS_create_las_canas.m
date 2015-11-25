@@ -4,6 +4,8 @@
 % this is not used anymore
 % with this script, the landslide hazard for las canas was created
 %--------------------------------------------------------------------------
+% Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_TWI_calc from centroids_TWI
+
 
 % load assets
 load([climada_global.project_dir filesep 'Salvador_entity_2015_LS'])
@@ -345,7 +347,7 @@ print(fig,'-dpdf',[ls_dir pdf_filename])
 % resolution_m = 50;
 % dem = salvador_dem_read('', resolution_m, 1);
 % load([climada_global.project_dir filesep 'centroids_LS_10m_rectangle_canas'])
-% centroids = centroids_TWI(centroids,1);
+% centroids = climada_centroids_TWI_calc(centroids,1);
 % centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+5;
 % [hazard_LS, hazard_RF]  = climada_ls_hazard_set(centroids,'');
 hazard_all_events = full(nansum(hazard.intensity));
@@ -450,12 +452,12 @@ load([salvador_data_dir filesep 'hazard_LS_centroids'])
 % hazard = climada_ls_hazard_set(hazard, hazard_save_name,  '', 0, 1);
 
 % add specific information to centroids
-centroids         = centroids_TWI(centroids, 0);
+centroids         = climada_centroids_TWI_calc(centroids, 0);
 centroids.TWI_ori = centroids.TWI;
 centroids.slope_deg_ori = centroids.slope_deg;
 centroids.TWI (centroids.TWI_ori>6) = 10;
 
-% centroids_TWI does not work correctly, several lines of nans and zeros appear
+% climada_centroids_TWI_calc does not work correctly, several lines of nans and zeros appear
 % fill nan and zero gaps in slope_deg vector, fill with random variables,
 % to have nice plots
 centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+5;
@@ -591,9 +593,9 @@ centroids.SD_m      = ones(size(centroids.lon))*5;    % soil depth
 centroids.LAI       = ones(size(centroids.lon))*0.4;  % leaf area index (m^2/m^2)
 centroids.RD        = ones(size(centroids.lon))*1;    % RD
 
-% centroids = centroids_TWI(centroids, 0);
+% centroids = climada_centroids_TWI_calc(centroids, 0);
 % centroids = centroids_basin_ID(centroids, 15, 0);
-% centroids = centroids_TWI(centroids, 0);
+% centroids = climada_centroids_TWI_calc(centroids, 0);
 % centroids = centroids_ET(centroids, 0);
 % centroids = centroids_WHC(centroids, 0);
 % centroids = centroids_BD(centroids,0);
@@ -686,7 +688,7 @@ load([climada_global.project_dir filesep 'centroids_LS_10m_rectangle_canas'])
 save([climada_global.project_dir filesep 'centroids_LS_50m_rectangle_canas'], 'centroids')
 load([climada_global.project_dir filesep 'centroids_LS_50m_rectangle_canas'])
 
-centroids = centroids_TWI(centroids,1);
+centroids = climada_centroids_TWI_calc(centroids,1);
 centroids.slope_deg(isnan(centroids.slope_deg)) = rand(sum(isnan(centroids.slope_deg)),1)*5+5;
 
 [hazard_LS, hazard_RF]  = climada_ls_hazard_set(centroids,'');

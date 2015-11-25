@@ -31,6 +31,7 @@ function [hazard_sets,EDS,centroids,entity]=ECA_San_Salvador(admin_name,...
 %   entity:     High resolution entity
 % MODIFICATION HISTORY:
 % Gilles Stassen, gillesstassen@hotmail.com, 20150508 init
+% Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_generate from climada_generate_centroids
 %-
 
 hazard_sets=[]; EDS = []; centroids = []; entity = []; % init output
@@ -151,8 +152,8 @@ else
     % output from geodistance in m, hence division by 1000 for conversion to km
     clear centroid_number_UB length_x length_y
     
-%     centroids = climada_generate_centroids(admin_shapes,centroid_resolution_km(adm_lvl),-1,'NO_SAVE',0);
-    centroids = climada_generate_centroids(garrobo_shapes,centroid_resolution_km(adm_lvl),0,'NO_SAVE',0);
+%     centroids = climada_centroids_generate(admin_shapes,centroid_resolution_km(adm_lvl),-1,'NO_SAVE',0);
+    centroids = climada_centroids_generate(garrobo_shapes,centroid_resolution_km(adm_lvl),0,'NO_SAVE',0);
     [DEM, centroids] = climada_read_srtm_DEM('DL',centroids, DEM_save_file, 1, 0);
 
     % 10m resolution DEM for San Salvador

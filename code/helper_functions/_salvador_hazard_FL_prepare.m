@@ -1,7 +1,7 @@
 
 
 % -- not used anymore ------
-
+% Lea Mueller, muellele@gmail.com, 20151125, rename to climada_hazard_crop from climada_hazard_focus_area
 
 
 %% LOAD INDUNDATION HAZARD AND CREATE FIGURES
@@ -121,7 +121,7 @@ for i=1:3
     hazard.filename  = '';
 
     % cut out relevant area for rio acelhuate
-    hazard = climada_hazard_focus_area(hazard,polygon_rio_acelhuate);
+    hazard = climada_hazard_crop(hazard,polygon_rio_acelhuate);
 
     % save flood hazard rio acelhuate
     save_name = [climada_global.project_dir filesep data_name{i}];

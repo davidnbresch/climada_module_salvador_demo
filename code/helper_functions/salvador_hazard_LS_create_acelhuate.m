@@ -2,6 +2,9 @@
 % this is not used anymore
 % with this script, the landslide hazard for acelhuate was created
 %--------------------------------------------------------------------------
+% Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_generate from climada_generate_centroids
+% Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_TWI_calc from centroids_TWI
+
 
 
 % % load assets
@@ -12,6 +15,7 @@
 % 
 % % load shp files
 % load([climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS'])
+
 
 
 %-----------------------------------------
@@ -118,7 +122,7 @@ centroids.lat = centroids.lat(indx_valid);
 % create centroids on a regular grid
 clear centroids 
 res_km = 0.03;     
-centroids = climada_generate_centroids(rectangle_acelhuate,res_km,0,'NO_SAVE',1);
+centroids = climada_centroids_generate(rectangle_acelhuate,res_km,0,'NO_SAVE',1);
 centroids.admin0_ISO3 = 'SLV'; 
 % compute centroids elevation
 centroids.elevation_m = F_DEM(centroids.lon',centroids.lat')';
@@ -126,7 +130,7 @@ centroids.basin_ID = ones(size(centroids.lon));
 centroids.centroid_ID = 1:numel(centroids.lon);
 centroids.onLand = ones(size(centroids.lon));
 % Calculate flood scores and topographic wetness indices
-centroids = centroids_TWI(centroids, 0);
+centroids = climada_centroids_TWI_calc(centroids, 0);
 % save([ls_dir 'centroids_acelhuate_30m'],'centroids')
 % save([ls_dir 'centroids_acelhuate_30m_v2'],'centroids')
 save([ls_dir 'centroids_acelhuate_30m_v3'],'centroids')

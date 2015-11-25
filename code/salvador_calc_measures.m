@@ -31,6 +31,7 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Jacob Anz,   j.anz@gmx.net     , 20151026, set special m_file limits only for peril FL
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 % Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
+% Lea Mueller, muellele@gmail.com, 20151125, rename to climada_adaptation_bar_chart from climada_adaptation_bar_chart_v2
 %-
 
 global climada_global
@@ -372,7 +373,7 @@ xlim_value = max(measures_impact_USD(4).benefit)*1.005;
 % if strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'])
 %     xlim_value = max(entity.measures.cost)*1.02;
 % end
-fig = climada_adaptation_bar_chart_v2(measures_impact_USD,sort_measures,scale_benefit,benefit_str,'southeast','','',xlim_value);
+fig = climada_adaptation_bar_chart(measures_impact_USD,sort_measures,scale_benefit,benefit_str,'southeast','','',xlim_value);
 pdf_filename = sprintf('Adaptation_bar_chart_USD_sorted_%s_%s.pdf',measures_impact_USD(u_i).peril_ID,nametag);
 print(fig,'-dpdf',[results_dir filesep pdf_filename])
        
@@ -403,7 +404,7 @@ end
 %     %strcmp(measures_file,['20151014_TC' filesep 'entity_AMSS_WIND-AMSS_141015_FINAL_COSTS.xlsx'])
 %     xlim_value=6.5*10^3;
 % end
-fig = climada_adaptation_bar_chart_v2(measures_impact_people,sort_measures,scale_benefit,benefit_str,'southeast','',cost_unit,xlim_value);
+fig = climada_adaptation_bar_chart(measures_impact_people,sort_measures,scale_benefit,benefit_str,'southeast','',cost_unit,xlim_value);
 pdf_filename = sprintf('Adaptation_bar_chart_people_sorted_%s_%s.pdf',measures_impact_USD(u_i).peril_ID,nametag);
 print(fig,'-dpdf',[results_dir filesep pdf_filename])
 
