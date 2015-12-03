@@ -36,12 +36,12 @@ function varargout = climada_measure_viewer(varargin)
 %   measures_impact: a measures_impact structure, e.g. produced by salvador_calc_measures
 %   type: must be specified from 'assets','benefits' and 'damage'
 %   unit: must be specified from 'USD' or 'people'
-%   timestamp: can be specified from
+%   timestamp: position in the measures_impact that is selected, e.g. can be specified from
 %                  1- current state
 %                  2- economic growth
 %                  3- moderate climate change
 %                  4- extreme climate change
-%                    (default is 1)
+%    
 %  index_measures:  can be selected from a certain measure (see measure list in the measures_impactfile), default =1;
 %  categories:      Select a certain category from the list
 %
@@ -55,9 +55,10 @@ function varargout = climada_measure_viewer(varargin)
 
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
+% Jacob Anz, j.anz@gmx.net, 20151203 set new structure, make ready to process San Salvador and Barisal results
 %-
 
-% Last Modified by GUIDE v2.5 13-Nov-2015 10:06:25
+% Last Modified by GUIDE v2.5 30-Nov-2015 10:28:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,6 +78,8 @@ else
 gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
+
+
 % gui varibale initialization
 function climada_measure_viewer_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -84,26 +87,19 @@ function climada_measure_viewer_OpeningFcn(hObject, eventdata, handles, varargin
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to climada_measure_viewer (see VARARGIN)
+
+%container is the main global struct, where all parameteres, data and settings are stored
 global container
-%global climada_global
 % Choose default command line output for climada_measure_viewer
 handles.output = hObject;
-%global container
-%climada_global = evalin('base', 'climada_global');
-%if ~climada_init_vars,return;end % init/import global variables
-
 %climada picture
 climada_logo(hObject, eventdata, handles)
 
 % Update handles structure
-%set all initial paramters
-set(handles.checkbox3,'Value',1);
-container.set_axis=1;
-set(handles.radiobutton9,'Value',1);
+container.set_axis=0;
 container.timestamp=1;
 set(handles.radiobutton2,'Value',1);
 container.rb2=1;container.rb1=0;container.rb3=0;
-%imagesc(uipanel8
 guidata(hObject, handles);
 
 function climada_logo(hObject, eventdata, handles)
@@ -117,7 +113,6 @@ hold on;
 imagesc(imread(logo_path));
 set(handles.axes2,'YDir','reverse');
 set(handles.axes2,'color','none')
-%uistack(handles.axes2,'bottom');
 catch
 set(handles.axes2,'color','none')
 set(handles.axes2,'visible','off')
@@ -134,7 +129,7 @@ function varargout = climada_measure_viewer_OutputFcn(hObject, eventdata, handle
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-% --- Executes on selection change in listbox1.
+% Listbox 1 - Measures
 function listbox1_Callback(hObject, eventdata, handles)
 % hObject    handle to listbox1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -144,21 +139,31 @@ function listbox1_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from listbox1
 global container
 
+% processes only after startup
+if ~isfield(container, 'measures_impact'),
+    set(handles.text15,'String','Please load a file first');
+    return
+elseif isfield(container, 'measures_impact') && isempty(container.measures_impact)
+    set(handles.text15,'String','Please load a file first');
+    return
+end
+   
+%get the measures list 
 if length(container.measures_impact)>1
-for i=1:length(container.measures_impact(1).EDS)
-measures{i,1}=container.measures_impact(1).EDS(i).annotation_name;
-end
+    for i=1:length(container.measures_impact(container.timestamp).EDS)
+    measures{i,1}=container.measures_impact(container.timestamp).EDS(i).annotation_name;
+    end
 else
-for i=1:length(container.measures_impact.EDS)
-measures{i,1}=container.measures_impact.EDS(i).annotation_name;
-end
+    for i=1:length(container.measures_impact.EDS)
+    measures{i,1}=container.measures_impact.EDS(i).annotation_name;
+    end
 end
 
+%set the measures list window in the GUI
 set(handles.listbox1,'String',measures);
-container.index_measures = get(hObject,'Value');
+container.index_measures = get(hObject,'Value'); 
 container.measures_list=measures;
-assignin('base','container',container);
-assignin('base','index_measures',container.index_measures);
+
 
 % --- Executes during object creation, after setting all properties.
 function listbox1_CreateFcn(hObject, eventdata, handles)
@@ -183,45 +188,90 @@ function listbox2_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from listbox2
 global container
 
-categories=unique(container.entity.assets.Category);
-categories(length(categories)+1)=length(categories)+1;
-for i=1:length(categories)
-cat{i}=num2str(categories(i));
+%processes only after startup
+if ~isfield(container, 'measures_impact'),
+    set(handles.text15,'String','Please load a file first')
+    return
+    elseif isfield(container, 'measures_impact') && isempty(container.measures_impact)
+    set(handles.text15,'String','Please load a file first');
+    return
 end
 
+%get the categories
+categories=unique(container.measures_impact(container.timestamp).entity.assets.Category);
+
+%if categories are numbers
+try 
+    categories(length(categories)+1)=length(categories)+1;
+    for i=1:length(categories)
+        cat{i}=num2str(categories(i));
+    end
+catch
+    categories{length(categories)+1}='all categories';
+    cat=categories;
+end
+
+%set the categories window in the GUI
 set(handles.listbox2,'Max',length(cat));
 set(handles.listbox2,'String',cat);
 
 contents = cellstr(get(hObject,'String'));
 select= contents{get(hObject,'Value')};
-container.index_categories=str2double(select);
-assignin('base','container',container);
-assignin('base','index_categories',container.index_categories);
+if iscell(contents);
+    container.index_categories=select;  
+else
+    container.index_categories=str2double(select);
+end
+
+%check if categories are numbers or words
+if isstrprop(container.index_categories, 'digit')
+    container.index_categories=str2num(container.index_categories);
+end
 
 %automatical detection of value_unit: USD or people
-for i=1:length(categories)-1
-pos=(find(container.entity.assets.Category==categories(i)));
-posi=pos(1);
-position{i}=container.entity.assets.Value_unit{posi};
+%check if Value_unit exists
+if ~isfield(container.measures_impact(container.timestamp).entity.assets,'Value_unit')
+    for p=1:length(container.measures_impact(container.timestamp).entity.assets.lon)
+    container.measures_impact(container.timestamp).entity.assets.Value_unit{p}='USD'; 
+    end                                                                    %get the currency! for bangladesh bdt
 end
-position{length(position)+1}='all categories with same unit';
+for i=1:length(cat)-1
+    if ~iscell(container.measures_impact(container.timestamp).entity.assets.Category)
+        for k=1:length(cat);cat_(k)=str2num(cat{k});end
+        pos=find(container.measures_impact(container.timestamp).entity.assets.Category==cat_(i));
+    else
+        pos=find(strcmp(container.measures_impact(container.timestamp).entity.assets.Category,cat{i}));
+    end    
+    position{i}=container.measures_impact(container.timestamp).entity.assets.Value_unit{pos(1)};
+end
+    position{length(position)+1}='all categories with same unit';
 for i=1:length(categories)
-string_vec{i}=[num2str(categories(i)) ' - ' position{i}];
+    string_vec{i}=[cat{i} ' - ' position{i}];
 end
 
+%recognize if unit is USD or people, and create a list
 for i=1:length(string_vec)-1
-if findstr(string_vec{i},'USD')>=1
-index_USD(i)=i;
-elseif findstr(string_vec{i},'people')>=1
-index_people(i)=i;
+    if findstr(string_vec{i},'USD')>=1
+        index_USD(i)=i;
+    elseif findstr(string_vec{i},'people')>=1
+        index_people(i)=i;
+    else
+       index_USD=0; index_people=0;
+    end
 end
+if exist('index_USD','var');
+    index_USD(index_USD==0)=[];
+    container.category_list_usd=categories(index_USD)';
+    if ~exist('index_people','var'); container.category_list_people=[];end
 end
-index_USD(index_USD==0)=[];
-index_people(index_people==0)=[];
-container.category_list_usd=categories(index_USD)';
-container.category_list_people=categories(index_people)';
+if exist('index_people','var');
+    index_people(index_people==0)=[];
+    container.category_list_people=categories(index_people)';
+end
+
 set(handles.listbox2,'String',string_vec);
 
+%recognize which category belongs to which unit, set the selection button accordingly
 if ismember(container.index_categories,container.category_list_usd)
 container.rb5=0;
 container.rb4=0;
@@ -235,6 +285,18 @@ set(handles.radiobutton4,'Value',0);
 set(handles.radiobutton5,'Value',1);
 container.rb5=1;
 end
+
+%disable people or USD selection button if only one of both exists
+if isempty(container.category_list_people) & ~isempty(container.category_list_usd)
+    set(handles.radiobutton5,'visible','off');set(handles.radiobutton4,'visible','on');
+elseif isempty(container.category_list_usd)& ~isempty(container.category_list_people)
+    set(handles.radiobutton4,'visible','off'); set(handles.radiobutton5,'visible','on');
+elseif ~isempty(container.category_list_usd)& ~isempty(container.category_list_people)
+    set(handles.radiobutton4,'visible','on'); set(handles.radiobutton5,'visible','on');
+else
+    set(handles.text15,'String','can not recongize neither USD nor people');
+end
+
 
 % --- Executes during object creation, after setting all properties.
 function listbox2_CreateFcn(hObject, eventdata, handles)
@@ -325,153 +387,109 @@ set(handles.radiobutton4,'Value',0);
 container.rb4=0;
 end
 
-% % flood
-% function radiobutton6_Callback(hObject, eventdata, handles)
-% % hObject    handle to radiobutton6 (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-% global container
-% rb_flood=get(hObject,'Value');
-% if rb_flood==1
-% container.rb_6=1;
-% container.rb_peril='FL';
-% end
-% 
-% if container.rb_6==1
-% set(handles.radiobutton7,'Value',0);
-% set(handles.radiobutton8,'Value',0);
-% container.rb7=0;
-% container.rb8=0;
-% end
-% check_peril(hObject, eventdata, handles)
-% 
-% % cylcone
-% function radiobutton7_Callback(hObject, eventdata, handles)
-% % hObject    handle to radiobutton7 (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-% global container
-% rb_storm=get(hObject,'Value');
-% if rb_storm==1
-% container.rb_7=1;
-% container.rb_peril='TC';
-% end
-% if container.rb_7==1
-% set(handles.radiobutton6,'Value',0);
-% set(handles.radiobutton8,'Value',0);
-% container.rb6=0;
-% container.rb8=0;
-% end
-% check_peril(hObject, eventdata, handles)
-% 
-% % landslides
-% function radiobutton8_Callback(hObject, eventdata, handles)
-% % hObject    handle to radiobutton8 (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-% global container
-% rb_landslide=get(hObject,'Value');
-% if rb_landslide==1
-% container.rb_8=1;
-% container.rb_peril='LS';
-% end
-% if container.rb_8==1
-% set(handles.radiobutton6,'Value',0);
-% set(handles.radiobutton7,'Value',0);
-% container.rb6=0;
-% container.rb7=0;
-% end
-% check_peril(hObject, eventdata, handles)
 
-%load measure impact file
+% Laoding of the measure impact file
 function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % prompt for file if not given
 global container
-%load measures impact file
+
+%initial settings
+container.timestamp=1;
+set(handles.listbox2,'value',1);
 set(handles.figure1, 'pointer', 'watch')
+
 drawnow;
-% [filename, pathname] = uigetfile({'*.mat'}, 'Select measures_impact file:');
-% filename_tot = fullfile(pathname,filename);
-% 
-% temp=open(filename_tot);
-%container.measures_impact=temp.measures_impact;
-container.measures_impact=climada_measures_impact_load;
+
+%load the file
+container.measures_impact=climada_measures_impact_load('',1);
+
 clear filename pathname filename_tot
 
-%load entity
+%load entity if not included in measures_impact
+
+if ~isfield(container.measures_impact,'entity')
 container.entity = climada_entity_load;
-% [filename, pathname] = uigetfile({'*.mat'}, 'Select entity file:');
-% filename_tot = fullfile(pathname,filename);
-% container.entity=open(filename_tot);
+end
 
 %recognize peril_ID
-container.rb_peril=container.measures_impact(1).peril_ID;
-message=sprintf('recognized %s peril',container.rb_peril);
+for i=1:length(container.measures_impact)
+    peril_list{i}=container.measures_impact(i).peril_ID;
+end
+container.peril_list=unique(peril_list);
+
+list=[];list_tot=[];
+for k=1:length(container.peril_list);list=container.peril_list{k};list_tot=[list ', ' list_tot];end  
+message=sprintf('recognized: %s perils',list_tot);
 if isfield(container, 'peril_name')
     index=length(container.peril_name)+1;
 else
     index=1;
 end
 
-if strcmp(container.rb_peril,'FL')
-    if isfield(container, 'peril_name')
-        for l=1:length(container.peril_name)
-            if strcmp(container.peril_name(l),'flood')
-                msgbox('flood peril already exists')
-                return
-            end
-        end
-    end
-            container.measures_impact_FL=container.measures_impact;
-            container.entity_FL=container.entity;
-%            set(handles.radiobutton6,'Value',1);set(handles.radiobutton7,'Value',0);set(handles.radiobutton8,'Value',0);
-            container.axis_ur=-89.15; container.axis_ul=-89.25;
-            container.axis_ol=13.67;  container.axis_or=13.7;
-            container.peril_name{index}='flood';    
-
-elseif strcmp(container.rb_peril,'TC')
-    if isfield(container, 'peril_name')
-        for l=1:length(container.peril_name)
-            if strcmp(container.peril_name(l),'tropical cyclone')
-                msgbox('tropical cyclone peril already exists')
-                return
-            end
-        end
-    end
-    container.measures_impact_TC=container.measures_impact;
-    container.entity_TC=container.entity;
-%    set(handles.radiobutton7,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton8,'Value',0);
-    container.axis_ur=-89; container.axis_ul=-89.35;
-    container.axis_ol=13.6;  container.axis_or=13.85;
-    container.peril_name{index}='tropical cyclone';
-elseif strcmp(container.rb_peril,'LS')
-    if isfield(container, 'peril_name')
-        for l=1:length(container.peril_name)
-            if strcmp(container.peril_name(l),'landslide')
-                msgbox('landslide peril already exists')
-                return
-            end
-        end
-    end    
-    container.measures_impact_LS=container.measures_impact;
-    container.entity_LS=container.entity;
-%    set(handles.radiobutton8,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton7,'Value',0);
-    container.axis_ur=-89.1; container.axis_ul=-89.145;
-    container.axis_ol=13.69;  container.axis_or=13.725;
-    container.peril_name{index}='landslide';
-elseif strcmp(container.rb_peril,'TS')
-    container.peril_name{index}='storm surge';
-elseif strcmp(container.rb_peril,'EQ')
-    container.peril_name{index}='earth quake';   
-end
+% Code to set the plotting axes dependant on the peril specific for San Salvador
+% if strcmp(container.rb_peril,'FL')
+%     if isfield(container, 'peril_name')
+%         for l=1:length(container.peril_name)
+%             if strcmp(container.peril_name(l),'flood')
+%                 button = questdlg('Flood peril already exists, overwrite it?','Peril recognition','Yes','No','Yes');
+%                 if strcmp(button,'Yes')
+%                     display('Flood peril overwritten') 
+%                 else
+%                     return
+%                 end
+%             end
+%         end
+%     end
+%             container.measures_impact_FL=container.measures_impact;
+%             container.entity_FL=container.entity;
+% %            set(handles.radiobutton6,'Value',1);set(handles.radiobutton7,'Value',0);set(handles.radiobutton8,'Value',0);
+%             container.axis_ur=-89.15; container.axis_ul=-89.25;
+%             container.axis_ol=13.67;  container.axis_or=13.7;
+%             container.peril_name{index}='flood';    
+% 
+% elseif strcmp(container.rb_peril,'TC')
+%     if isfield(container, 'peril_name')
+%         for l=1:length(container.peril_name)
+%             if strcmp(container.peril_name(l),'tropical cyclone')
+%                 msgbox('tropical cyclone peril already exists')
+%                 return
+%             end
+%         end
+%     end
+%     container.measures_impact_TC=container.measures_impact;
+%     container.entity_TC=container.entity;
+% %    set(handles.radiobutton7,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton8,'Value',0);
+%     container.axis_ur=-89; container.axis_ul=-89.35;
+%     container.axis_ol=13.6;  container.axis_or=13.85;
+%     container.peril_name{index}='tropical cyclone';
+% elseif strcmp(container.rb_peril,'LS')
+%     if isfield(container, 'peril_name')
+%         for l=1:length(container.peril_name)
+%             if strcmp(container.peril_name(l),'landslide')
+%                 msgbox('landslide peril already exists')
+%                 return
+%             end
+%         end
+%     end    
+%     container.measures_impact_LS=container.measures_impact;
+%     container.entity_LS=container.entity;
+% %    set(handles.radiobutton8,'Value',1);set(handles.radiobutton6,'Value',0);set(handles.radiobutton7,'Value',0);
+%     container.axis_ur=-89.1; container.axis_ul=-89.145;
+%     container.axis_ol=13.69;  container.axis_or=13.725;
+%     container.peril_name{index}='landslide';
+% elseif strcmp(container.rb_peril,'TS')
+%     container.peril_name{index}='storm surge';
+% elseif strcmp(container.rb_peril,'EQ')
+%     container.peril_name{index}='earth quake';   
+% end
 msgbox(message);
 
 listbox1_Callback(hObject, eventdata, handles);
 listbox2_Callback(hObject, eventdata, handles);
-display('done');
+display(' loading sucessfull');
 set(handles.figure1, 'pointer', 'arrow')
 
 %execute each function to return the current state
@@ -480,199 +498,175 @@ radiobutton5_Callback(hObject, eventdata, handles)
 %peril list
 popupmenu4_Callback(hObject, eventdata, handles)
 
-function check_peril(hObject, eventdata, handles)
-%Selection of peril
-global container
-if strcmp(container.rb_peril,'FL')
-container.measures_impact=container.measures_impact_FL;
-container.entity=container.entity_FL;
-elseif strcmp(container.rb_peril,'TC')
-container.measures_impact=container.measures_impact_TC;
-container.entity=container.entity_TC;
-elseif strcmp(container.rb_peril,'LS')
-container.measures_impact=container.measures_impact_LS;
-container.entity=container.entity_LS;
-elseif strcmp(container.rb_peril,'EQ')
-container.measures_impact=container.measures_impact_EQ;
-container.entity=container.entity_EQ;
-elseif strcmp(container.rb_peril,'TS')
-container.measures_impact=container.measures_impact_TS;
-container.entity=container.entity_TS;
-end
-
-listbox1_Callback(hObject, eventdata, handles);
-listbox2_Callback(hObject, eventdata, handles);
-radiobutton4_Callback(hObject, eventdata, handles)
-radiobutton5_Callback(hObject, eventdata, handles)
-display('Peril loaded');
-
-% plotting
+% plotting -> Main part
 function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global container
+    % hObject    handle to pushbutton2 (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    global container
+    
+    %get the listbox selections
+    container.index_measures    = get(handles.listbox1,'Value');
+    container.unit_criterium='';
+    
+    set(handles.figure1, 'pointer', 'watch')
+    drawnow;
+    cla reset
+    clear cbar
+    cla (handles.axes1,'reset')
+    axes(handles.axes1);
 
-%default values=
-container.unit_criterium='';
-%checkbox3_Callback(hObject, eventdata, handles); %set_axis
+    edit5_Callback(hObject, eventdata, handles);
+    miv=0.1;
 
-set(handles.figure1, 'pointer', 'watch')
-drawnow;
-cla reset
-clear cbar
-cla (handles.axes1,'reset')
-axes(handles.axes1);
-%set(handles.axes1,'layer','top')
+    %select for USD or people
+    if container.rb4 ==1 && container.rb5 ==1
+        container.unit_criterium='';
+        set(handles.text15,'String','Please select either USD or People');
 
-% markersize=2;
-edit5_Callback(hObject, eventdata, handles);
-miv=0.1;
+    elseif container.rb4 ==1
+        container.unit_criterium='USD';
+        if container.index_categories==length(unique(container.measures_impact(container.timestamp).entity.assets.Category))+1;
+            temp_ind_cat=container.category_list_usd;
+        else
 
-%select for USD or people
-if container.rb4 ==1 && container.rb5 ==1
-container.unit_criterium='';
-set(handles.text15,'String','Please select either USD or People');
+        end
+    elseif container.rb5 ==1
+        container.unit_criterium='people';
+        if container.index_categories==length(unique(container.measures_impact(container.timestamp).entity.assets.Category))+1;
+            temp_ind_cat=container.category_list_people;
+        else
+            
+        end
+    elseif container.rb4 ==0 && container.rb5 ==0
+        container.unit_criterium='USD';
+    end
 
-elseif container.rb4 ==1
-container.unit_criterium='USD';
-if container.index_categories==length(unique(container.entity.assets.Category))+1;
-temp_ind_cat=container.category_list_usd;
-else
+    %check if Peril_ID matches selection
+    if ~isfield(container,'rb_peril')
+        set(handles.text15,'String','Please select a peril');
 
-end
-elseif container.rb5 ==1
-container.unit_criterium='people';
-if container.index_categories==length(unique(container.entity.assets.Category))+1;
-temp_ind_cat=container.category_list_people;
-else
-%        container.index_categories='';                                      %deaktiviert categories selection
-end
-else
-container.unit_criterium='';
-end
+    elseif ~strcmp(container.measures_impact(container.timestamp).peril_ID,container.rb_peril)
+        set(handles.text15,'String','Selected peril does not match measures impact file, please select a different peril');
+        return
+    end
 
-%check if Peril id matches selection
-if ~isfield(container,'rb_peril')
-set(handles.text15,'String','Please select a peril');
+    %special case to get sum over all categories (USD/people) (artificial last category:'all categories')
+    if strcmp(container.index_categories,'all categories') | container.index_categories==length(unique(container.measures_impact(container.timestamp).entity.assets.Category))+1;
+        selection= climada_value_sum(container.measures_impact(container.timestamp).entity,container.measures_impact,container.type,container.unit_criterium,container.timestamp,container.index_measures,handles);
+    end
 
-elseif container.measures_impact(1).peril_ID ~=container.rb_peril
-set(handles.text15,'String','Selected peril does not match measures impact file, please select a different peril');
-return
-end
+    is_selected = climada_assets_select(container.measures_impact(container.timestamp).entity,container.rb_peril,container.unit_criterium,container.index_categories);
+    container.is_selected=is_selected;
 
-%special case to get sum over all categories (USD/people) (artificial last category)
-if container.index_categories==length(unique(container.entity.assets.Category))+1;
-selection= climada_value_sum(container.entity,container.measures_impact,container.type,container.unit_criterium,container.timestamp,container.index_measures,handles);
-end
+    %Message if no entity selected
+    if ~isfield(container, 'rb1') && ~isfield(container, 'rb2') && ~isfield(container, 'rb3')
+        message='Please select an entity';
+        set(handles.text15,'String',message);
+    else
+        %check for small values <1 that make problems if plotting on exponential scale and miv is set
 
-is_selected = climada_assets_select(container.entity,container.rb_peril,container.unit_criterium,container.index_categories);
-container.is_selected=is_selected;
+     % Selection of the values that are plotted
+        %damage
+        if container.rb1==1;
+            if strcmp(container.rb_peril,'FL'); container.peril_color='FL';
+            elseif strcmp(container.rb_peril,'TC'); container.peril_color='TC';
+            elseif strcmp(container.rb_peril,'TC'); container.peril_color='MS';
+            end
+            if container.index_categories==length(unique(container.measures_impact(container.timestamp).entity.assets.Category))+1 | strcmp(container.index_categories,'all categories');
+                if max(selection.point_value)<2;miv=[]; end
+                container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
+                set(handles.text1,'String',sum(selection.point_value));
+            else
+                if max(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected))<1;miv=[];end
+                container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
+                container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
+                container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected);
+                 [~, ~,num_str] = climada_digit_set(sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)),'',1);
+                set(handles.text1,'String',num_str)% sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)));
+            end
 
-%Message if no entity selected
-if ~isfield(container, 'rb1') && ~isfield(container, 'rb2') && ~isfield(container, 'rb3')
-message='Please select an entity';
-set(handles.text15,'String',message);
-else
-%check for small values <1 that make problems if plotting on exponential scale and miv is set
+            %assets
+        elseif  container.rb2==1;
+            container.peril_color='assets';
+            if container.index_categories==length(unique(container.measures_impact(container.timestamp).entity.assets.Category))+1 | strcmp(container.index_categories,'all categories');
+                if max(selection.point_value)<1;miv=[]; end
+                container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
+                set(handles.text2,'String',sum(selection.point_value));
 
-%damage
-if container.rb1==1;
-if strcmp(container.rb_peril,'FL'); container.peril_color='FL';
-elseif strcmp(container.rb_peril,'TC'); container.peril_color='TC';
-elseif strcmp(container.rb_peril,'TC'); container.peril_color='MS';
-end
-if container.index_categories==length(unique(container.entity.assets.Category))+1;
-if max(selection.point_value)<1;miv=[]; end
-container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
-set(handles.text1,'String',sum(selection.point_value));
-else            
-if max(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected))<1;miv=[];end
-container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
-container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
-container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected);
-set(handles.text1,'String',sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)));
-end
+            else
+                if max(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected))<1;miv=[];end
+                container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
+                container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
+                container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected);
+                [~, ~,num_str] = climada_digit_set(sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)),'',1);
+                set(handles.text2,'String',num_str) %sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)));
+            end
 
-%assets
-elseif  container.rb2==1;
-container.peril_color='assets';
-if container.index_categories==length(unique(container.entity.assets.Category))+1;
-if max(selection.point_value)<1;miv=[]; end
-container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
-set(handles.text2,'String',sum(selection.point_value));
-else
-if max(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected))<1;miv=[];end
-container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
-container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
-container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected);
-set(handles.text2,'String',sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)));
-end
+            %benefit
+        elseif container.rb3==1;
+            radiobutton3_Callback(hObject, eventdata, handles);
+            container.peril_color='benefit';
+            if container.index_categories==length(unique(container.measures_impact(container.timestamp).entity.assets.Category))+1 | strcmp(container.index_categories,'all categories');
+                if max(selection.point_value)<1;miv=[]; end
+                container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
+                set(handles.text3,'String',sum(selection.point_value));
+            else
+                if max(container.benefit{1,container.index_measures}(is_selected))<1;miv=[]; end
+                container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
+                container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
+                container.plot_value=container.benefit{1,container.index_measures}(is_selected);
+                [~, ~,num_str] = climada_digit_set(sum(container.benefit{1,container.index_measures}(is_selected)),'',1);
+                set(handles.text3,'String',num_str) %sum(container.benefit{1,container.index_measures}(is_selected)));
+            end
 
-%benefit
-elseif container.rb3==1;
-radiobutton3_Callback(hObject, eventdata, handles);
-container.peril_color='benefit';
-if container.index_categories==length(unique(container.entity.assets.Category))+1;
-if max(selection.point_value)<1;miv=[]; end
-container.plot_lon=selection.point_lon;container.plot_lat=selection.point_lat;container.plot_value=selection.point_value;
-set(handles.text3,'String',sum(selection.point_value));
-else
-if max(container.benefit{1,container.index_measures}(is_selected))<1;miv=[]; end
-container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
-container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
-container.plot_value=container.benefit{1,container.index_measures}(is_selected);
-set(handles.text3,'String',sum(container.benefit{1,container.index_measures}(is_selected)));
-end
+        end
+        if sum(container.plot_value)==0;
+            message='no values to plot, all selected values are 0';
+        else
+            
+            %finally: plotting
+            cbar=plotclr(container.plot_lon,container.plot_lat,container.plot_value,'s',container.markersize,1,miv,[],climada_colormap(container.peril_color),[],1);
+            set(get(cbar,'ylabel'),'String', 'value per pixel (exponential scale)' ,'fontsize',12);
+            message='values plotted';
+        end
+        set(handles.text15,'String',message);set(gcf,'toolbar','figure');set(gcf,'menubar','figure');
+        climada_figure_scale_add
+        title(container.measures_impact(container.timestamp).EDS(container.index_measures).annotation_name);
 
-end
-if sum(container.plot_value)==0;
-message='no values to plot, all selected values are 0';
-else
-%final plotting
-cbar=plotclr(container.plot_lon,container.plot_lat,container.plot_value,'s',container.markersize,1,miv,[],climada_colormap(container.peril_color),[],1);
-set(get(cbar,'ylabel'),'String', 'value per pixel (exponential scale)' ,'fontsize',12);
-message='values plotted';
-end
-set(handles.text15,'String',message);
-set(gcf,'toolbar','figure');
-set(gcf,'menubar','figure');
-climada_figure_scale_add
-title(container.measures_impact(container.timestamp).EDS(container.index_measures).annotation_name);
+        if container.set_axis==1
+            if isfield(container, 'axis_ol') && isfield(container, 'axis_or') && isfield(container, 'axis_ul') && isfield(container, 'axis_ur')
 
-if container.set_axis==1
-if isfield(container, 'axis_ol') && isfield(container, 'axis_or') && isfield(container, 'axis_ul') && isfield(container, 'axis_ur')
+                climada_figure_axis_limits_equal_for_lat_lon([container.axis_ul container.axis_ur container.axis_ol container.axis_or])
+            else
+                set(handles.text15,'String','Please enter axis limits');
+                edit1_Callback(hObject, eventdata, handles);edit2_Callback(hObject, eventdata, handles);
+                edit3_Callback(hObject, eventdata, handles);edit4_Callback(hObject, eventdata, handles);
+                if isfield(container, 'axis_ol')
+                    pushbutton2_Callback(hObject, eventdata, handles)
+                end
+            end
+        end
+        hold on
+    end
+    
+    % plotting of shapes (river, roads) if loaded
+    if ~isfield(container, 'plot_river')&& get(handles.checkbox1,'Value')==1;
+        set(handles.text15,'String','Please load a shape file first');
 
-climada_figure_axis_limits_equal_for_lat_lon([container.axis_ul container.axis_ur container.axis_ol container.axis_or])          
-else
-set(handles.text15,'String','Please enter axis limits');
-edit1_Callback(hObject, eventdata, handles);edit2_Callback(hObject, eventdata, handles);
-edit3_Callback(hObject, eventdata, handles);edit4_Callback(hObject, eventdata, handles);
-if isfield(container, 'axis_ol')
-    pushbutton2_Callback(hObject, eventdata, handles)
-end            
-end        
-end
-hold on
-end
+    elseif isfield(container, 'plot_river')&& container.plot_river==1 && isfield(container, 'shapes');
+        shape_plotter(container.shapes.shape_rivers)
+    end
 
-if ~isfield(container, 'plot_river')&& get(handles.checkbox1,'Value')==1;
-set(handles.text15,'String','Please load a shape file first');
+    if ~isfield(container, 'plot_roads') && get(handles.checkbox2,'Value')==1;
+        set(handles.text15,'String','Please load a shape file first');
+    elseif isfield(container, 'plot_roads')&& container.plot_roads==1 && isfield(container, 'shapes');
+        shape_plotter(container.shapes.shape_roads)
+    end
+    set(handles.figure1, 'pointer', 'arrow');
+    climada_logo(hObject, eventdata, handles);
 
-elseif isfield(container, 'plot_river')&& container.plot_river==1 && isfield(container, 'shapes');
-shape_plotter(container.shapes.shape_rivers)
-
-end
-
-if ~isfield(container, 'plot_roads') && get(handles.checkbox2,'Value')==1;
-set(handles.text15,'String','Please load a shape file first');
-elseif isfield(container, 'plot_roads')&& container.plot_roads==1 && isfield(container, 'shapes');
-shape_plotter(container.shapes.shape_roads)
-end
-set(handles.figure1, 'pointer', 'arrow');
-climada_logo(hObject, eventdata, handles);
-
-%shapes
+% loading of shapes (river, roads)
 function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -718,7 +712,7 @@ function checkbox2_Callback(hObject, eventdata, handles)
 global container
 container.plot_roads=get(hObject,'Value');
 
-%Save matlab selection in .mat file
+% Save matlab selection in .mat file
 function pushbutton6_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -775,50 +769,68 @@ function pushbutton8_Callback(hObject, eventdata, handles)
 global climada_global container
 container.set_axis=1;
 
+% the offset between the viewers output (kml) and the google earth image
+% must be adjusted manually here, therefor special cases:
+
 %manually adjust the kml output to the topography (E.g. rivers) as the default is dislocated
 %west, east, south, north extension and layer angle (rotation) can be set
-if strcmp(container.rb_peril,'FL')
-offset.west=+0.019; %+0.020;        +0.013      +0.020;                     display setting:    oly- 13.7
-offset.east=+0.0145; %0.016          +0.013      +0.015;                                        uly- 13.67
-offset.south=+0.065; %+0.05;        +0.065      +0.065;                                         ulx- -89.25
-offset.north=-0.006; %-0.0025;     -0.0045     -0.0045;                                         urx- -89.15
-set(handles.edit1,'String','13.67');set(handles.edit2,'String','13.7');      
-set(handles.edit3,'String','-89.25');set(handles.edit4,'String','-89.15');         
-container.axis_ur=-89.15; container.axis_ul=-89.25;
-container.axis_ol=13.67;  container.axis_or=13.7;
-elseif strcmp(container.rb_peril,'TC')
-offset.west=+0.06;
-offset.east=+0.046;
-offset.south=+0.19;
-offset.north=+0.04;
-set(handles.edit1,'String','13.6');set(handles.edit2,'String','13.85');      
-set(handles.edit3,'String','-89.35');set(handles.edit4,'String','-89');
-container.axis_ur=-89; container.axis_ul=-89.35;
-container.axis_ol=13.6;  container.axis_or=13.85;
-elseif strcmp(container.rb_peril,'LS')    
-offset.west=+0.005;
-offset.east=+0.003;
-offset.south=+0.018;
-offset.north=+0.007;
-set(handles.edit1,'String','13.69');set(handles.edit2,'String','13.725');      
-set(handles.edit3,'String','-89.145');set(handles.edit4,'String','-89.1');
-container.axis_ur=-89.1; container.axis_ul=-89.145;
-container.axis_ol=13.69;  container.axis_or=13.725;
+
+%hardwired: San Salvador
+if strcmp(container.rb_peril,'FL') & strfind(container.measures_impact(container.timestamp).scenario.region,'San Salvador')
+    kml_offset.west=+0.019; %+0.020;        +0.013      +0.020;                     display setting:    oly- 13.7
+    kml_offset.east=+0.0145; %0.016          +0.013      +0.015;                                        uly- 13.67
+    kml_offset.south=+0.065; %+0.05;        +0.065      +0.065;                                         ulx- -89.25
+    kml_offset.north=-0.011; %-0.0025;     -0.0045     -0.0045;                                         urx- -89.15
+    set(handles.edit1,'String','13.67');set(handles.edit2,'String','13.7');      
+    set(handles.edit3,'String','-89.25');set(handles.edit4,'String','-89.15');         
+    container.axis_ur=-89.15; container.axis_ul=-89.25;
+    container.axis_ol=13.67;  container.axis_or=13.7;
+elseif strcmp(container.rb_peril,'TC') & strfind(container.measures_impact(container.timestamp).scenario.region,'San Salvador')
+    kml_offset.west=+0.06;
+    kml_offset.east=+0.046;
+    kml_offset.south=+0.14;
+    kml_offset.north=+0.04;
+    set(handles.edit1,'String','13.6');set(handles.edit2,'String','13.85');      
+    set(handles.edit3,'String','-89.35');set(handles.edit4,'String','-89');
+    container.axis_ur=-89; container.axis_ul=-89.35;
+    container.axis_ol=13.6;  container.axis_or=13.85;
+elseif strcmp(container.rb_peril,'LS') & strfind(container.measures_impact(container.timestamp).scenario.region,'San Salvador')   
+    kml_offset.west=+0.005;
+    kml_offset.east=+0.003;
+    kml_offset.south=+0.013;
+    kml_offset.north=+0.007;
+    set(handles.edit1,'String','13.69');set(handles.edit2,'String','13.725');      
+    set(handles.edit3,'String','-89.145');set(handles.edit4,'String','-89.1');
+    container.axis_ur=-89.1; container.axis_ul=-89.145;
+    container.axis_ol=13.69;  container.axis_or=13.725;
+    
+    %hardwired: Barisal
+elseif strfind(container.measures_impact(container.timestamp).scenario.region,'Barisal') 
+    kml_offset.west=+0.048;
+    kml_offset.east=+0.042;
+    kml_offset.south=+0.04;
+    kml_offset.north=+0.040;
+    set(handles.edit1,'String','22.64');set(handles.edit2,'String','22.8');      
+    set(handles.edit3,'String','90.29');set(handles.edit4,'String','90.39');         
+    container.axis_ur=90.39; container.axis_ul=90.29;
+    container.axis_ol=22.64;  container.axis_or=22.8;
 end
 
 pushbutton2_Callback(hObject, eventdata, handles);
 
+% name the output kml file 
 scenario_names={'currentstate';'econgrowth';'modcc';'extrcc'};
-plot_name = [container.rb_peril '_' container.unit_criterium '_' container.type '_' scenario_names{container.timestamp}...
+plot_name = [container.rb_peril '_' container.unit_criterium '_' container.type '_' container.measures_impact(container.timestamp).scenario.name_simple ...
 '_' container.measures_list{container.index_measures} '_category_' ...
 num2str(container.index_categories)];
 google_earth_save = [climada_global.data_dir filesep 'results' filesep plot_name '.kmz'];
+
 % save kmz file
 k = kml(google_earth_save);    
-k.transfer(handles.axes1,offset,'rotation',+0) %+3
+k.transfer(handles.axes1,kml_offset,'rotation',+0) %+3
 k.run
 
-% Load file
+% Currently disabled: Load file
 function popupmenu1_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -891,7 +903,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
-% Plot object
+% Currently disabled: Plot object
 function popupmenu2_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -954,7 +966,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
-% Open object
+% Currently disabled: Open object
 function popupmenu3_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1013,6 +1025,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
+% axes corners for set axes limits
 function edit1_Callback(hObject, eventdata, handles)
 % hObject    handle to edit1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1035,6 +1048,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
+% axes corners for set axes limits
 function edit2_Callback(hObject, eventdata, handles)
 % hObject    handle to edit2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1057,7 +1071,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
-
+% axes corners for set axes limits
 function edit3_Callback(hObject, eventdata, handles)
 % hObject    handle to edit3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1080,7 +1094,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
-
+% axes corners for set axes limits
 function edit4_Callback(hObject, eventdata, handles)
 % hObject    handle to edit4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1103,7 +1117,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
-% --- Executes on button press in checkbox3.
+% axes corners for set axes limits
 function checkbox3_Callback(hObject, eventdata, handles)
 % hObject    handle to checkbox3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1113,83 +1127,83 @@ function checkbox3_Callback(hObject, eventdata, handles)
 global container
 container.set_axis=get(hObject,'Value');
 
-% --- timestamp now.
+% disabled:--- timestamp now.
 function radiobutton9_Callback(hObject, eventdata, handles)
 % hObject    handle to radiobutton9 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton9
-global container
-container.rb_9=get(hObject,'Value');
-if container.rb_9==1
-container.timestamp=1;
-set(handles.radiobutton10,'Value',0);
-set(handles.radiobutton11,'Value',0);
-set(handles.radiobutton12,'Value',0);
-container.rb10=0;
-container.rb11=0;
-container.rb12=0;
-end
+% global container
+% container.rb_9=get(hObject,'Value');
+% if container.rb_9==1
+% %container.timestamp=1;
+% set(handles.radiobutton10,'Value',0);
+% set(handles.radiobutton11,'Value',0);
+% set(handles.radiobutton12,'Value',0);
+% container.rb10=0;
+% container.rb11=0;
+% container.rb12=0;
+% end
 
-% --- timestamp economic growth
+% disabled:--- timestamp economic growth
 function radiobutton10_Callback(hObject, eventdata, handles)
 % hObject    handle to radiobutton10 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton10
-global container
-container.rb_10=get(hObject,'Value');
-if container.rb_10==1
-container.timestamp=2;
-set(handles.radiobutton9,'Value',0);
-set(handles.radiobutton11,'Value',0);
-set(handles.radiobutton12,'Value',0);
-container.rb9=0;
-container.rb11=0;
-container.rb12=0;
-end
+% global container
+% container.rb_10=get(hObject,'Value');
+% if container.rb_10==1
+% %container.timestamp=2;
+% set(handles.radiobutton9,'Value',0);
+% set(handles.radiobutton11,'Value',0);
+% set(handles.radiobutton12,'Value',0);
+% container.rb9=0;
+% container.rb11=0;
+% container.rb12=0;
+% end
 
-% --- timestamp moderate climate change
+% disabled:--- timestamp moderate climate change
 function radiobutton11_Callback(hObject, eventdata, handles)
 % hObject    handle to radiobutton11 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton11
-global container
-container.rb_11=get(hObject,'Value');
-if container.rb_11==1
-container.timestamp=3;
-set(handles.radiobutton9,'Value',0);
-set(handles.radiobutton10,'Value',0);
-set(handles.radiobutton12,'Value',0);
-container.rb9=0;
-container.rb10=0;
-container.rb12=0;
-end
+% global container
+% container.rb_11=get(hObject,'Value');
+% if container.rb_11==1
+% %container.timestamp=3;
+% set(handles.radiobutton9,'Value',0);
+% set(handles.radiobutton10,'Value',0);
+% set(handles.radiobutton12,'Value',0);
+% container.rb9=0;
+% container.rb10=0;
+% container.rb12=0;
+% end
 
-% --- timestep extreme climate change
+% disabled:--- timestep extreme climate change
 function radiobutton12_Callback(hObject, eventdata, handles)
 % hObject    handle to radiobutton12 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton12
-global container
-container.rb_12=get(hObject,'Value');
-if container.rb_12==1
-container.timestamp=4;
-set(handles.radiobutton9,'Value',0);
-set(handles.radiobutton11,'Value',0);
-set(handles.radiobutton10,'Value',0);
-container.rb9=0;
-container.rb11=0;
-container.rb10=0;
-end
+% global container
+% container.rb_12=get(hObject,'Value');
+% if container.rb_12==1
+% %container.timestamp=4;
+% set(handles.radiobutton9,'Value',0);
+% set(handles.radiobutton11,'Value',0);
+% set(handles.radiobutton10,'Value',0);
+% container.rb9=0;
+% container.rb11=0;
+% container.rb10=0;
+% end
 
-
+% set the markersize
 function edit5_Callback(hObject, eventdata, handles)
 % hObject    handle to edit5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1212,7 +1226,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes during object creation, after setting all properties.
 function axes1_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to axes1 (see GCBO)
@@ -1221,15 +1234,13 @@ function axes1_CreateFcn(hObject, eventdata, handles)
 
 % Hint: place code in OpeningFcn to populate axes1
 
-
 % --- Executes during object creation, after setting all properties.
 function radiobutton9_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to radiobutton9 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-
-% --- Executes on selection change in popupmenu4.
+% Peril selection
 function popupmenu4_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1240,7 +1251,9 @@ function popupmenu4_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 global container
-set(handles.popupmenu4,'String',container.peril_name);
+set(handles.popupmenu5,'Value',1);
+
+set(handles.popupmenu4,'String',container.peril_list);
 contents = cellstr(get(hObject,'String'));
 selection=contents{get(hObject,'Value')};
 
@@ -1255,7 +1268,9 @@ elseif strcmp('storm surge',selection)
 elseif strcmp('earthquake',selection)
     container.rb_peril='EQ';
 end
-check_peril(hObject, eventdata, handles)
+container.rb_peril=selection;
+
+popupmenu5_Callback(hObject, eventdata, handles)
   
 function popupmenu4_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to popupmenu4 (see GCBO)
@@ -1266,4 +1281,59 @@ function popupmenu4_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
 set(hObject,'BackgroundColor','white');
+end
+
+
+% Scenario selection
+function popupmenu5_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu5 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu5
+global container
+
+%initialize
+set(handles.listbox2,'value',1);set(handles.listbox1,'value',1);
+container.hobj = gcbo;
+contents = cellstr(get(handles.popupmenu4,'String'));container.rb_peril=contents{get(handles.popupmenu4,'Value')};
+
+%create the entries from hazard and entity
+j=0;
+for i=1:length(container.measures_impact)
+    if strcmp(container.measures_impact(i).peril_ID,container.rb_peril)
+    j=j+1;
+    scenario_list{j,1}=container.measures_impact(i).scenario.name_simple;
+    end
+end
+scenario_list=unique(scenario_list);
+
+%select only scenarios that match the peril_ID chosen
+
+set(handles.popupmenu5,'String',scenario_list);
+contents = cellstr(get(handles.popupmenu5,'String'));
+selection=contents{get(hObject,'Value')};
+
+
+for i=1:length(container.measures_impact)
+    if strcmp(container.measures_impact(i).scenario.name_simple,selection) && strcmp(container.measures_impact(i).peril_ID,container.rb_peril)
+        container.timestamp=i;
+    end
+end
+
+listbox1_Callback(container.hobj, eventdata, handles);
+listbox2_Callback(handles.listbox2, eventdata, handles);
+    
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end
