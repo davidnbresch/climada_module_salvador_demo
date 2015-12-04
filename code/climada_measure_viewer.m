@@ -99,6 +99,7 @@ climada_logo(hObject, eventdata, handles)
 container.set_axis=0;
 container.timestamp=1;
 set(handles.radiobutton2,'Value',1);
+container.type='assets';
 container.rb2=1;container.rb1=0;container.rb3=0;
 guidata(hObject, handles);
 
@@ -504,16 +505,13 @@ function pushbutton2_Callback(hObject, eventdata, handles)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
     global container
-    
+     
     %get the listbox selections
     container.index_measures    = get(handles.listbox1,'Value');
     container.unit_criterium='';
     
     set(handles.figure1, 'pointer', 'watch')
-    drawnow;
-    cla reset
-    clear cbar
-    cla (handles.axes1,'reset')
+    drawnow;cla reset; clear cbar; cla (handles.axes1,'reset');
     axes(handles.axes1);
 
     edit5_Callback(hObject, eventdata, handles);
@@ -582,7 +580,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
                 container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
                 container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
                 container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected);
-                 [~, ~,num_str] = climada_digit_set(sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)),'',1);
+                 [~, ~,num_str] = climada_digit_set(sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)));
                 set(handles.text1,'String',num_str)% sum(container.measures_impact(container.timestamp).EDS(container.index_measures).ED_at_centroid(is_selected)));
             end
 
@@ -599,7 +597,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
                 container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
                 container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
                 container.plot_value=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected);
-                [~, ~,num_str] = climada_digit_set(sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)),'',1);
+                [~, ~,num_str] = climada_digit_set(sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)));
                 set(handles.text2,'String',num_str) %sum(container.measures_impact(container.timestamp).EDS(container.index_measures).assets.Value(is_selected)));
             end
 
@@ -616,7 +614,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
                 container.plot_lon=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lon(is_selected);
                 container.plot_lat=container.measures_impact(container.timestamp).EDS(container.index_measures).assets.lat(is_selected);
                 container.plot_value=container.benefit{1,container.index_measures}(is_selected);
-                [~, ~,num_str] = climada_digit_set(sum(container.benefit{1,container.index_measures}(is_selected)),'',1);
+                [~, ~,num_str] = climada_digit_set(sum(container.benefit{1,container.index_measures}(is_selected)));
                 set(handles.text3,'String',num_str) %sum(container.benefit{1,container.index_measures}(is_selected)));
             end
 
