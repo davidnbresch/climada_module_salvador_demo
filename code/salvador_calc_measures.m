@@ -238,7 +238,7 @@ end
 % entity.measures.hazard_intensity_impact_b = -entity.measures.hazard_intensity_impact;
 sanity_check = 1;
 % entity.assets = rmfield(entity.assets,'hazard');
-measures_impact = climada_measures_impact(entity,hazard,'no','','',sanity_check,1);
+measures_impact = climada_measures_impact(entity,hazard,'no','','',sanity_check);
 
 % measures_impact_filename = [results_dir filesep sprintf('measures_impact_%s_%s.mat',datestr(now,'YYYYmmdd'),nametag)];
 % % measures_impact_filename = [climada_global.project_dir filesep sprintf('measures_impact_%s_%s.mat',datestr(now,'YYYYmmdd'),nametag)];
@@ -251,7 +251,7 @@ entity.measures = measures_ori;
 entity_future = salvador_entity_future_create(entity, '', '',hazard.peril_ID);
 
 % 2040, economic growth, no cc
-measures_impact(2) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check,1);
+measures_impact(2) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
 
 % 2040, moderate cc
 if strcmp(peril_ID,'FL')
@@ -277,7 +277,7 @@ end
 % % annotation_name = sprintf('%s climate change',cc_scenario);
 
 % calculate measures impact
-measures_impact(3) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check,1);
+measures_impact(3) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
 
 % 2040, extreme cc
 if strcmp(peril_ID,'FL')
@@ -297,7 +297,7 @@ end
 % % annotation_name = sprintf('%s climate change',cc_scenario);
 
 % calculate measures impact
-measures_impact(4) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check,1);
+measures_impact(4) = climada_measures_impact(entity_future,hazard,'no','','',sanity_check);
 
 % save measures_impacts (today, future moderate cc, future extreme cc)
 measures_impact_filename = [results_dir filesep sprintf('measures_impact_%s_%s.mat',datestr(now,'YYYYmmdd'),nametag)];
