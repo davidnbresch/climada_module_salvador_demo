@@ -1,5 +1,3 @@
-
-
 % create waterfall and adapatation measures for San Salvadoro
 % MODULE:
 %   salvador_demo
@@ -8,6 +6,133 @@
 %-
 
 
+% combine the two parts for FL into one
+silent_mode = 1;
+measures_impact_FL = climada_measures_impact_attach_measures_impact(measures_impact_FL_part_1,measures_impact_FL_part_2,silent_mode);
+
+% add all measures_impact into one (all scenarios, perils, regions)
+measures_impact = measures_impact_LS_acelhuate;
+measures_impact(5:8) = measures_impact_LS_las_canas;
+measures_impact(9:12) = measures_impact_TC;
+measures_impact(13:16) = measures_impact_FL;
+
+
+% modify some specifics for San Salvador
+% rename categories, peril_ID and scenario.name_simple
+Category_name = {'LS Acelhuate Housing AUP'; 'LS Acelhuate Housing';'LS Acelhuate Hospitals';'LS Acelhuate Schools';...
+              'LS Acelhuate Roads';'LS Acelhuate Buildings';'LS Acelhuate People AUPs';'LS Acelhuate People (outside AUPs)'};
+for i = 1:4
+    measures_impact(i).peril_ID = 'LS_acelhuate';
+    for ii = 1:6
+        measures_impact(i).EDS(ii).assets.Category_name = Category_name;
+    end
+end
+
+Category_name = {'LS Canas Housing AUP'; 'FL Canas Housing';'LS Canas Hospitals';'LS Canas Schools';...
+              'LS Canas Roads';'LS Canas Buildings';'LS Canas People AUPs';'LS Canas People (outside AUPs)'};
+for i = 5:8
+    %measures_impact(i).peril_ID = 'LS_las_canas';
+    for ii = 1:10
+        measures_impact(i).EDS(ii).assets.Category_name = Category_name;
+    end
+end
+
+Category_name = {'TC Housing AUP'; 'TC People AUPs'};
+for i = 9:12
+    %measures_impact(i).peril_ID = 'LS_las_canas';
+    for ii = 1:8
+        measures_impact(i).EDS(ii).assets.Category_name = Category_name;
+    end
+end
+Category_name = {'FL Housing AUP'; 'FL Housing';'FL Hospitals';'FL Schools';'FL Roads';'FL Buildings';'FL People AUPs';'FL People (outside AUPs)'};
+for i = 13:16
+    for ii = 1:29
+        measures_impact(i).EDS(ii).assets.Category_name = Category_name;
+    end
+end
+
+%rename scenario.name_simple and scenario.name
+for i = 1:numel(measures_impact)
+    measures_impact(i).scenario.region = 'San Salvador';
+    %measures_impact(i).scenario.name_simple_region = measures_impact(i).scenario.name_simple;
+    switch i
+        case {1, 5, 9, 13}
+            name_simple = '2015, no climate change, San Salvador';
+            name_full = 'Assets 2015, Hazard 2015 no climate change, San Salvador';
+        case {2, 6, 10, 14}
+            name_simple = '2040, Economic growth, San Salvador';
+            name_full = 'Assets 2040, Hazard 2015 no climate change, San Salvador';
+        case {3, 7, 11, 15}
+            name_simple = '2040, moderate climate change, San Salvador';
+            name_full = 'Assets 2040, Hazard 2040 moderate climate change, San Salvador';
+        case {4, 8, 12, 16}
+            name_simple = '2040, extreme climate change, San Salvador';
+            name_full = 'Assets 2040, Hazard 2040 extreme climate change, San Salvador';
+    end
+    measures_impact(i).scenario.name_simple = name_simple;
+    measures_impact(i).scenario.name = name_full;
+end
+
+
+
+
+
+%% calculate all results (waterfall and measures) for 
+% TC, LS las canas, LS acelhaute, FL acelhaute
+
+%% ----TC ---
+peril_ID = 'TC'; 
+nametag = ''; assets_file = ''; damfun_file = ''; measures_file = '';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = 'TC_waterfall'; 
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
+results_dir = 'TC_measures';
+salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID)
+
+
+%% ----LS las canas ---
+peril_ID = 'LS_las_canas'; 
+nametag = ''; assets_file = ''; damfun_file = ''; measures_file = '';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = 'LS_las_canas_waterfall'; 
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
+results_dir = 'LS_las_canas_measures';
+salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID)
+
+
+%% ----LS acelhuate ---
+peril_ID = 'LS_acelhuate'; 
+nametag = ''; assets_file = ''; damfun_file = ''; measures_file = '';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = 'LS_acelhuate_waterfall'; 
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
+results_dir = 'LS_acelhuate_measures_1';
+salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID)
+
+%% ----FL ---
+peril_ID = 'FL'; 
+nametag = ''; assets_file = ''; damfun_file = ''; measures_file = '';
+growth_rate_eco =  '';
+growth_rate_people = '';
+results_dir = 'FL_waterfall'; 
+EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID);
+
+results_dir = 'FL_measures_part_1'; tag = 'AB1';
+salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID,tag)
+results_dir = 'FL_measures_part_2_1'; tag = 'AB2';
+salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,results_dir,peril_ID,tag)
+
+
+
+
+
+
+
+
+%% old calculations
 nametag = 'measures_LS_las_canas_v2';
 assets_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'];
 damfun_file = ['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'];

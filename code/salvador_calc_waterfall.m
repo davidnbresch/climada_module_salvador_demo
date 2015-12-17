@@ -21,6 +21,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, muellele@gmail.com, 20151020, do not show legend in waterfall graph
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 % Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
+% Lea Mueller, muellele@gmail.com, 20151217, use climada_global.data_dir instead of project_dir, use climada_assets_read and climada_discount_read instead of climada_entity_read
 %-
 
 
@@ -62,7 +63,8 @@ if isempty(growth_rate_people), growth_rate_people = 0.2/100; end
 
 [pathstr, name, ext] = fileparts(results_dir);
 if isempty(pathstr)
-    pathstr = climada_global.project_dir;
+    pathstr = [climada_global.data_dir filesep 'results'];
+    %pathstr = climada_global.project_dir;
     results_dir = fullfile(pathstr, name);
 end
 
@@ -107,7 +109,7 @@ else
         hazard = climada_hazard_load;
         if isempty(hazard), return, end
         hazard_set_file = hazard.filename;
-        peril_ID = hazard.peril_ID;
+        peril_ID = hazard.peril_ID;        
         if strcmp(peril_ID,'LS')
             LS_name = {'las_canas' 'acelhuate'};
             [selection,ok] = listdlg('PromptString','Select Landslide area:',...
@@ -122,6 +124,7 @@ else
         end
     end
 end
+hazard.scenario = 'no climate change';
 hazard.reference_year = climada_global.present_reference_year;
 
 % create and save future cc hazards (TC, LS_las_canas and LS_acelhuate)
@@ -132,7 +135,8 @@ end
 
 %% Entity selection
 % set consultant_data_entity_dir
-consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
+% consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
+consultant_data_entity_dir = [climada_global.data_dir filesep 'entities'];
 measures_file = '';
 [assets_file, damfun_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID);
 
@@ -144,9 +148,9 @@ end
 % entity today
 if ~isempty(strfind(assets_file,':')) || ~isempty(strfind(assets_file,'\\'))
     % assets_file contains full path already
-    entity = climada_entity_read(assets_file,hazard);
+    entity.assets = climada_assets_read(assets_file,hazard);
 else
-    entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
+    entity.assets = climada_assets_read([consultant_data_entity_dir filesep assets_file],hazard);
 end
 entity.assets.reference_year = climada_global.present_reference_year;
 if isfield(entity.assets,'VALNaN'), entity.assets = rmfield(entity.assets,'VALNaN');end
@@ -278,9 +282,11 @@ for u_i = 1:numel(unit_list)
     for cc_i = 1:numel(cc_scenario_names)
         switch cc_scenario_names{cc_i}
             case 'moderate'
-                fig = climada_waterfall_graph(EDS(1),EDS(2),EDS(3),'AED');
+                fig = climada_figuresize(0.57,0.7);
+                climada_waterfall_graph(EDS(1),EDS(2),EDS(3),'AED');
             case 'extreme'
-                fig = climada_waterfall_graph(EDS(1),EDS(2),EDS(4),'AED');
+                fig = climada_figuresize(0.57,0.7);
+                climada_waterfall_graph(EDS(1),EDS(2),EDS(4),'AED');
         end
         % do not show legend
         legend('off'); %legend(get(fig),'');

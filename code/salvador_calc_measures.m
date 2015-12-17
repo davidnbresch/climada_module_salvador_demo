@@ -32,6 +32,7 @@ function salvador_calc_measures(nametag,assets_file,damfun_file,measures_file,re
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 % Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
 % Lea Mueller, muellele@gmail.com, 20151125, rename to climada_adaptation_bar_chart from climada_adaptation_bar_chart_v2
+% Lea Mueller, muellele@gmail.com, 20151217, use climada_global.data_dir instead of project_dir, use climada_assets_read and climada_discount_read instead of climada_entity_read
 %-
 
 global climada_global
@@ -57,6 +58,12 @@ if isempty(results_dir),
 end
 % if isempty(peril_ID), peril_ID = 'FL'; end
 if isempty(m_file), m_file = ''; end
+
+[pathstr, name, ext] = fileparts(results_dir);
+if isempty(pathstr)
+    pathstr = [climada_global.data_dir filesep 'results'];
+    results_dir = fullfile(pathstr, name);
+end
 
 % create results dir
 if ~exist(results_dir,'dir')
@@ -129,6 +136,7 @@ else
         end
     end
 end
+hazard.scenario = 'no climate change';
 hazard.reference_year = climada_global.present_reference_year;
 
 
@@ -140,7 +148,8 @@ end
 
 %% Entity selection
 % set consultant_data_entity_dir
-consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
+% consultant_data_entity_dir = [fileparts(climada_global.project_dir) filesep 'consultant_data' filesep 'entity'];
+consultant_data_entity_dir = [climada_global.data_dir filesep 'entities'];
 [assets_file, damfun_file, measures_file, m_file] = salvador_entity_files_set(assets_file,damfun_file,measures_file,peril_ID,m_file);
 if isempty(assets_file)
     return
@@ -149,9 +158,13 @@ end
 % read entity assets today
 if ~isempty(strfind(assets_file,':')) || ~isempty(strfind(assets_file,'\\'))
     % assets_file contains full path already
-    entity = climada_entity_read(assets_file,hazard);
+    entity.assets = climada_assets_read(assets_file,hazard);
+    entity.discount = climada_discount_read(assets_file);
+    %entity = climada_entity_read(assets_file,hazard);
 else
-    entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
+    entity.assets = climada_assets_read([consultant_data_entity_dir filesep assets_file],hazard);
+    entity.discount = climada_discount_read([consultant_data_entity_dir filesep assets_file]);
+    %entity = climada_entity_read([consultant_data_entity_dir filesep assets_file],hazard);
 end
 entity.assets.reference_year = climada_global.present_reference_year;
 if isfield(entity.assets,'VALNaN'), entity.assets = rmfield(entity.assets,'VALNaN');end
@@ -184,14 +197,16 @@ entity.damagefunctions = entity_out.damagefunctions;
 if ~isempty(strfind(measures_file,':')) || ~isempty(strfind(measures_file,'\\'))
     entity.measures = climada_measures_read(measures_file);
 else
-    switch peril_ID
-        case 'FL'
-            entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
-        case 'TC'
-            entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
-        otherwise
-            entity.measures = climada_measures_read([consultant_data_entity_dir filesep measures_file]);
-    end
+    entity.measures = climada_measures_read([consultant_data_entity_dir filesep measures_file]);
+    %switch peril_ID
+    %    entity.measures = climada_measures_read([consultant_data_entity_dir filesep measures_file]);
+    %    case 'FL'
+    %       entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
+    %    case 'TC'
+    %        entity.measures = climada_measures_read([consultant_data_entity_dir filesep 'measures' filesep measures_file]);
+    %    otherwise
+    %        entity.measures = climada_measures_read([consultant_data_entity_dir filesep measures_file]);
+    %end
 end
 % do not use special damagefunctions in measures
 if isfield(entity.measures,'damagefunctions')
@@ -382,7 +397,8 @@ print(fig,'-dpdf',[results_dir filesep pdf_filename])
 scale_benefit = 10000; %scale_benefit = 20000;
 cost_unit = 'USD';
 xlim_value = max(measures_impact_people(4).benefit)*1.005;
-if ~isempty(strfind(measures_file,'_A_B_1'))
+if ~isempty(strfind(measures_file,'part_1'))
+% if ~isempty(strfind(measures_file,'_A_B_1'))
     %strcmp(measures_file,['20150918' filesep 'measures_template_for_measures_location_A_B_1.xls'])
     xlim_value = max(measures_impact_people(4).benefit)*1.5;
     xlim_value = 1200;
@@ -392,11 +408,12 @@ if strcmp(m_file,'AB1') && strcmp(peril_ID,'FL')
 elseif strcmp(m_file,'AB2') && strcmp(peril_ID,'FL') 
     xlim_value = 6e3;
 end
-if ~isempty(strfind(measures_file,'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'))
+if ~isempty(strfind(measures_file,'LS_entity_las_canas.xls'))
+% if ~isempty(strfind(measures_file,'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'))
     %strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_LASCANAS_141015_NEW.xls'])
     xlim_value = 2*620; %xlim_value = 620;
 end
-if ~isempty(strfind(measures_file,'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'))
+if ~isempty(strfind(measures_file,'LS_entity_Acelhuate.xls'))
     %strcmp(measures_file,['20151014_LS' filesep 'entity_AMSS_DESLIZAMIENTO_ACELHUATE_141015_NEW.xls'])
     xlim_value = 450; % xlim_value = 2*450;
 end

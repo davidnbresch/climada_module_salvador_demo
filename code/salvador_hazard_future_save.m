@@ -20,6 +20,7 @@ function salvador_hazard_future_save(peril_ID)
 % MODIFICATION HISTORY:
 % Lea Mueller, muellele@gmail.com, 20150923, init
 % Lea Mueller, muellele@gmail.com, 20151030, hazards can be saved in project_dir or project_dir/hazards
+% Lea Mueller, muellele@gmail.com, 20151217, add .scenario 
 %-
 
 global climada_global
@@ -58,6 +59,7 @@ if strcmp(peril_ID,'TC')
     
     %moderate
     hazard = climada_hazard_climate_screw(hazard_orig,'NO_SAVE',climada_global.future_reference_year,screw_mod);
+    hazard.scenario = 'moderate climate change';
     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_moderate_cc'],'hazard');
     fprintf('Save hazard as %s\n', 'Salvador_hazard_TC_2040_moderate_cc')
     
@@ -65,6 +67,7 @@ if strcmp(peril_ID,'TC')
     %load([climada_global.project_dir filesep 'Salvador_hazard_TC_2015'])   
     %hazard.reference_year = climada_global.present_reference_year;
     hazard = climada_hazard_climate_screw(hazard_orig,'NO_SAVE',2040,screw_ext);
+    hazard.scenario = 'extreme climate change';
     save([climada_global.project_dir filesep 'Salvador_hazard_TC_2040_extreme_cc'],'hazard'); 
     fprintf('Save hazard as %s\n', 'Salvador_hazard_TC_2040_extreme_cc')
     
@@ -107,6 +110,7 @@ if strcmp(peril_ID,'LS_las_canas') || strcmp(peril_ID,'LS_acelhuate') || strcmp(
         load([climada_global.project_dir filesep hazard_set_file])
         if ~exist('hazard','var') && exist('hazard_distance','var'), hazard = hazard_distance; end
         hazard.reference_year = climada_global.present_reference_year;
+        
         if ~isfield(hazard,'category'), hazard.category(1:hazard.event_count) = 1; end
         if ~strcmp([climada_global.project_dir filesep hazard_set_file], hazard.filename)
             hazard.filename = [climada_global.project_dir filesep hazard_set_file];
@@ -119,6 +123,7 @@ if strcmp(peril_ID,'LS_las_canas') || strcmp(peril_ID,'LS_acelhuate') || strcmp(
         hazard.category(1:hazard.event_count) = 1;
         hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',climada_global.future_reference_year,screw_mod);
         hazard.intensity(hazard.intensity>1) = 1.0;
+        hazard.scenario = 'moderate climate change';
         hazard.filename = [climada_global.project_dir filesep hazard_set_file_moderate_cc];
         save([climada_global.project_dir filesep hazard_set_file_moderate_cc],'hazard');
         fprintf('Save hazard as %s\n', hazard_set_file_moderate_cc)
@@ -133,6 +138,7 @@ if strcmp(peril_ID,'LS_las_canas') || strcmp(peril_ID,'LS_acelhuate') || strcmp(
         hazard.reference_year = climada_global.present_reference_year;
         hazard = climada_hazard_climate_screw(hazard,'NO_SAVE',climada_global.future_reference_year,screw_ext);
         hazard.intensity(hazard.intensity>1) = 1;
+        hazard.scenario = 'extreme climate change';
         hazard.filename = [climada_global.project_dir filesep hazard_set_file_extreme_cc];
         save([climada_global.project_dir filesep hazard_set_file_extreme_cc],'hazard');
         fprintf('Save hazard as %s\n', hazard_set_file_extreme_cc)
