@@ -16,7 +16,8 @@ function selection= climada_value_sum(entity,measures_impact,type,unit,timestamp
 %   measures_impact: a measures_impact structure, e.g. produced by salvador_calc_measures
 %   type: must be specified from 'assets','benefits' and 'damage'
 %   unit: must be specified from 'USD' or 'people'
-%   timestamp: can be specified from
+%   timestamp: identifies the position of the chosen EDS in the measures
+%   impact struct, e.g. can be specified from
 %                  1- current state
 %                  2- economic growth
 %                  3- moderate climate change
@@ -32,16 +33,19 @@ function selection= climada_value_sum(entity,measures_impact,type,unit,timestamp
 %   current selected values.
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
-%-
+% Jacob Anz, j.anz@gmx.net, 20151203 modified the input so that
+% climada_assets_select can be called if categories are not numbers but
+% names
+%
 
 if ~climada_init_vars,return;end % init/import global variables
 
 %initialize
-stopper=0;
+stopper=0; index_USD=[]; index_people=[];
 
 %derive list of measures
-    for i=1:length(measures_impact(1).EDS)
-        index_measures_list{i,1}=measures_impact(1).EDS(i).annotation_name;
+    for i=1:length(measures_impact(timestamp).EDS)
+        index_measures_list{i,1}=measures_impact(timestamp).EDS(i).annotation_name;
     end
 
 %default values
@@ -52,7 +56,7 @@ if ~exist('index_measures','var'); index_measures=1;end
 
 %detection of peril
 if exist('measures_impact','var')
-    rb_peril=measures_impact(1).peril_ID;
+    rb_peril=measures_impact(timestamp).peril_ID;
     message1=sprintf('recognized %s peril',rb_peril);
     message2=sprintf('Measure %s selected',index_measures_list{index_measures,1});
     message=[message1 ' and ' message2];
@@ -66,17 +70,30 @@ if exist('measures_impact','var')
 end
 
 categories=unique(entity.assets.Category);
-categories(length(categories)+1)=length(categories)+1;
-
+if iscell(categories)
+    categories{length(categories)+1}='all categories';
+else
+    categories(length(categories)+1)=length(categories)+1;
+end
 %automatical detection of position of value_unit: USD or people
-for i=1:length(categories)-1 
-    pos=(find(entity.assets.Category==categories(i)));
-    posi=pos(1);
-    position{i}=entity.assets.Value_unit{posi};
+for i=1:length(categories)-1
+    if iscell(categories)   
+        pos=find(strcmp(entity.assets.Category,categories(i)));
+        posi=pos(1);
+        position{i}=entity.assets.Value_unit{posi};
+    else
+        pos=(find(entity.assets.Category==categories(i)));
+        posi=pos(1);
+        position{i}=entity.assets.Value_unit{posi};
+    end
 end
     position{length(position)+1}='all categories with same unit';
 for i=1:length(categories)
-    string_vec{i}=[num2str(categories(i)) ' - ' position{i}];
+    if iscell(categories)
+        string_vec{i}=[categories{i} '-' position{i}];
+    else
+        string_vec{i}=[num2str(categories(i)) ' - ' position{i}];
+    end
 end
 
 for i=1:length(string_vec)-1
@@ -96,34 +113,67 @@ elseif strcmp(unit,'people')
 end
 
     t.coord_tot=[];t.value_tot=[];
-    for index_cat=temp_ind_cat
-        is_selected = climada_assets_select(entity,rb_peril,unit,index_cat);
-        
-        if strcmp(type,'assets');
-            coord(:,1)=entity.assets.lon(is_selected);
-            coord(:,2)=entity.assets.lat(is_selected);
-            value=entity.assets.Value(is_selected);
-        elseif strcmp(type,'damage');
-           coord(:,1)= measures_impact(timestamp).EDS(index_measures).assets.lon(is_selected);
-           coord(:,2)= measures_impact(timestamp).EDS(index_measures).assets.lat(is_selected);
-           value=measures_impact(1).EDS(1).ED_at_centroid(is_selected);
-        elseif strcmp(type,'benefit');
-            stopper=stopper+1;
-            if stopper==1;
-                for i=1:length(measures_impact(1).EDS)
-                    benefit{i}=measures_impact(1).EDS(length(measures_impact(1).EDS)).ED_at_centroid-measures_impact(1).EDS(i).ED_at_centroid;
+    %main part, climada_assets_select is called
+    if iscell(temp_ind_cat)
+            for counter=1:length(temp_ind_cat)
+          
+                is_selected = climada_assets_select(entity,rb_peril,unit,temp_ind_cat(counter));
+
+                if strcmp(type,'assets');
+                    coord(:,1)=entity.assets.lon(is_selected);
+                    coord(:,2)=entity.assets.lat(is_selected);
+                    value=entity.assets.Value(is_selected);
+                elseif strcmp(type,'damage');
+                   coord(:,1)= measures_impact(timestamp).EDS(index_measures).assets.lon(is_selected);
+                   coord(:,2)= measures_impact(timestamp).EDS(index_measures).assets.lat(is_selected);
+                   value=measures_impact(1).EDS(1).ED_at_centroid(is_selected);
+                elseif strcmp(type,'benefit');
+                    stopper=stopper+1;
+                    if stopper==1;
+                        for i=1:length(measures_impact(1).EDS)
+                            benefit{i}=measures_impact(1).EDS(length(measures_impact(1).EDS)).ED_at_centroid-measures_impact(1).EDS(i).ED_at_centroid;
+                        end
+                    end
+                   coord(:,1)= measures_impact(timestamp).EDS(index_measures).assets.lon(is_selected);
+                   coord(:,2)= measures_impact(timestamp).EDS(index_measures).assets.lat(is_selected);
+                   value= benefit{1,index_measures}(is_selected);
                 end
+
+                   t.coord_tot=[t.coord_tot;coord];
+                   t.value_tot=[t.value_tot;value];
+                   clear is_selected coord value
             end
-           coord(:,1)= measures_impact(timestamp).EDS(index_measures).assets.lon(is_selected);
-           coord(:,2)= measures_impact(timestamp).EDS(index_measures).assets.lat(is_selected);
-           value= benefit{1,index_measures}(is_selected);
-        end
-        
-           t.coord_tot=[t.coord_tot;coord];
-           t.value_tot=[t.value_tot;value];
-           clear is_selected coord value
+                       
+     else
+            for index_cat=temp_ind_cat
+                is_selected = climada_assets_select(entity,rb_peril,unit,index_cat);
+
+                if strcmp(type,'assets');
+                    coord(:,1)=entity.assets.lon(is_selected);
+                    coord(:,2)=entity.assets.lat(is_selected);
+                    value=entity.assets.Value(is_selected);
+                elseif strcmp(type,'damage');
+                   coord(:,1)= measures_impact(timestamp).EDS(index_measures).assets.lon(is_selected);
+                   coord(:,2)= measures_impact(timestamp).EDS(index_measures).assets.lat(is_selected);
+                   value=measures_impact(1).EDS(1).ED_at_centroid(is_selected);
+                elseif strcmp(type,'benefit');
+                    stopper=stopper+1;
+                    if stopper==1;
+                        for i=1:length(measures_impact(1).EDS)
+                            benefit{i}=measures_impact(1).EDS(length(measures_impact(1).EDS)).ED_at_centroid-measures_impact(1).EDS(i).ED_at_centroid;
+                        end
+                    end
+                   coord(:,1)= measures_impact(timestamp).EDS(index_measures).assets.lon(is_selected);
+                   coord(:,2)= measures_impact(timestamp).EDS(index_measures).assets.lat(is_selected);
+                   value= benefit{1,index_measures}(is_selected);
+                end
+
+                   t.coord_tot=[t.coord_tot;coord];
+                   t.value_tot=[t.value_tot;value];
+                   clear is_selected coord value
+            end
      end
-    
+       
     [~,~,idx]=unique(t.coord_tot,'rows','stable');
     t_max=max(idx);
     for j=1:t_max
