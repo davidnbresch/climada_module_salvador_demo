@@ -4,6 +4,7 @@
 %--------------------------------------------------------------------------
 % Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_generate from climada_generate_centroids
 % Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_TWI_calc from centroids_TWI
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 
 
 
@@ -182,8 +183,8 @@ climada_figure_axis_limits_equal_for_lat_lon(axlim); climada_figure_scale_add(''
 % polygon_acelhuate = climada_shape_selector(fig,1,1);
 % polygon_acelhuate.lon = polygon_acelhuate.X;
 % polygon_acelhuate.lat = polygon_acelhuate.Y;
-% % shape_plotter(polygon_rio_acelhuate, '')
-% % shape_plotter(shapes,label_att,lon_fieldname,lat_fieldname,varargin)
+% % climada_shapeplotter(polygon_rio_acelhuate, '')
+% % climada_shapeplotter(shapes,label_att,lon_fieldname,lat_fieldname,varargin)
 pdf_filename = sprintf('LS_entity_assets_acelhuate.pdf'); %pdf_filename = sprintf('LS_entity_assets.pdf');
 print(fig,'-dpdf',[ls_dir pdf_filename])
 

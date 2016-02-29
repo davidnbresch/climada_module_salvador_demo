@@ -5,6 +5,7 @@
 % with this script, the landslide hazard for las canas was created
 %--------------------------------------------------------------------------
 % Lea Mueller, muellele@gmail.com, 20151125, rename to climada_centroids_TWI_calc from centroids_TWI
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 
 
 % load assets
@@ -259,8 +260,8 @@ climada_figure_axis_limits_equal_for_lat_lon(axlim); climada_figure_scale_add(''
 polygon_acelhuate = climada_shape_selector(fig,1,1);
 polygon_acelhuate.lon = polygon_acelhuate.X;
 polygon_acelhuate.lat = polygon_acelhuate.Y;
-% shape_plotter(polygon_rio_acelhuate, '')
-% shape_plotter(shapes,label_att,lon_fieldname,lat_fieldname,varargin)
+% climada_shapeplotter(polygon_rio_acelhuate, '')
+% climada_shapeplotter(shapes,label_att,lon_fieldname,lat_fieldname,varargin)
 pdf_filename = sprintf('LS_entity_assets_acelhuate.pdf'); %pdf_filename = sprintf('LS_entity_assets.pdf');
 print(fig,'-dpdf',[ls_dir pdf_filename])
 
@@ -517,8 +518,8 @@ cbar = plotclr(hazard.lon, hazard.lat, hazard.factor_of_safety,'s',2.7,1,0,27,cm
 set(cbar,'YTick',[])
 set(get(cbar,'ylabel'),'String', 'Landslide susceptibility','fontsize',13);
 hold on
-%shape_plotter(shapes(indx_salvador),'','','','linewidth',0.5,'color',[0.4 0.4 0.4]) % grey
-shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','','','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+%climada_shapeplotter(shapes(indx_salvador),'','','','linewidth',0.5,'color',[0.4 0.4 0.4]) % grey
+climada_shapeplotter(shape_rios(indx_rios_in_San_Salvador),'','','','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
 % axis equal
 x_y_ratio = climada_geo_distance(-89,14,-89.001,14)/climada_geo_distance(-89,14,-89,14.001);
 set(gca, 'PlotBoxAspectRatio', [x_y_ratio 1 1]);
@@ -625,7 +626,7 @@ hazard.peril_ID          = 'FS'; %factor of safety
 % figure
 % climada_hazard_plot_hr(hazard,1);
 % hold on
-% shape_plotter(shapes(indx_salvador))
+% climada_shapeplotter(shapes(indx_salvador))
 % % axis equal
 
 % %normalize between 0 and 5
@@ -648,13 +649,13 @@ hazard.peril_ID          = 'FS'; %factor of safety
 
 
 %%
-% % shape_plotter(shapes)
+% % climada_shapeplotter(shapes)
 % indx_salvador = find(strcmp({shapes.NAME_1},'San Salvador'));
 
 % % create figure with only San Salvador "name 1" and create polygon for LS
 % % focus area
 % figure
-% shape_plotter(shapes(indx_salvador))
+% climada_shapeplotter(shapes(indx_salvador))
 % [polygon_LS.lon,polygon_LS.lat] = ginput;
 % polygon_LS.name = 'San Salvador, LS, polygon';
 % save([salvador_data_dir filesep 'polygon_LS'], 'polygon_LS')
@@ -733,7 +734,7 @@ save([salvador_data_dir filesep 'centroids_LS_500m'], 'centroids')
 %% test figures for DEM info for centroids
 % create figure
 % figure
-% shape_plotter(shapes(indx_salvador))
+% climada_shapeplotter(shapes(indx_salvador))
 % hold on
 % plot(polygon_LS.lon, polygon_LS.lat, '-b');
 % plot(centroids.lon, centroids.lat, 'xk');
@@ -743,8 +744,8 @@ figure
 hold on
 plotclr(dem.lon, dem.lat, dem.value, '','',1,400,1000);
 % plotclr(centroids.lon, centroids.lat, centroids.elevation_m, '','',1,400,1800);
-% shape_plotter(shapes(indx_salvador),'','X_ori','Y_ori')
-shape_plotter(shapes(indx_salvador))
+% climada_shapeplotter(shapes(indx_salvador),'','X_ori','Y_ori')
+climada_shapeplotter(shapes(indx_salvador))
 plot3(polygon_LS.lon_shift, polygon_LS.lat_shift,ones(size(polygon_LS.lat_shift))*3000, '-b');
 % plot3(polygon_LS.lon, polygon_LS.lat,ones(size(polygon_LS.lat))*4000, '-r');
 

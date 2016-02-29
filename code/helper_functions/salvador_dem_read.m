@@ -26,9 +26,10 @@ function [dem, resolution_m] = salvador_dem_read(dem_filename, resolution_m, che
 %           event set has been generated
 %       .date_created: time when the dem structure has been generated
 % MODIFICATION HISTORY:
-%  Lea Mueller, muellele@gmail.com, 20150729, init
-%  Lea Mueller, muellele@gmail.com, 20150729, cutoff last column and row, only if resolution is coarser than original resolution
-%  Lea Mueller, muellele@gmail.com, 20150914, transform grid to lat/lon and then create vectors lat and lon
+% Lea Mueller, muellele@gmail.com, 20150729, init
+% Lea Mueller, muellele@gmail.com, 20150729, cutoff last column and row, only if resolution is coarser than original resolution
+% Lea Mueller, muellele@gmail.com, 20150914, transform grid to lat/lon and then create vectors lat and lon
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 % -
 
 dem          = []; % init
@@ -187,8 +188,8 @@ if check_plot
     shp_file = [climada_global.project_dir filesep 'system' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'];
     if exist(shp_file,'file')
         load(shp_file)
-        shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','','','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
-        shape_plotter(polygon_LS,'','lon','lat')
+        climada_shapeplotter(shape_rivers(indx_rivers_in_San_Salvador),'','','','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+        climada_shapeplotter(polygon_LS,'','lon','lat')
     end
     
     %axis equal

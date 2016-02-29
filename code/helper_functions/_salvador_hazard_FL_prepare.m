@@ -2,6 +2,7 @@
 
 % -- not used anymore ------
 % Lea Mueller, muellele@gmail.com, 20151125, rename to climada_hazard_crop from climada_hazard_focus_area
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 
 
 %% LOAD INDUNDATION HAZARD AND CREATE FIGURES
@@ -32,7 +33,7 @@ for e_i = 1:6
     fig = climada_figuresize(0.4,0.8);
     plotclr(hazard.lon, hazard.lat, hazard.intensity(e_i,:),'s',markersize,1,0,max_flood_m,climada_colormap(hazard.peril_ID));
     hold on
-    shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+    climada_shapeplotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
     box on
     axis([min(hazard.lon) max(hazard.lon) min(hazard.lat) max(hazard.lat)])
     title({['Flood Rio Acelhuate (m), ' sprintf('%d year return period',1./hazard.frequency(e_i))]; '1D from MARN, 2D from GFA, 10m resolution'})
@@ -60,7 +61,7 @@ for e_i = 1:5
     fig = climada_figuresize(0.3,0.8);
     plotclr(hazard.lon, hazard.lat, value,'s',1,1,min_flood_m,max_flood_m,climada_colormap(hazard.peril_ID));
     hold on
-    shape_plotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
+    climada_shapeplotter(shape_rios(indx_rios_in_San_Salvador),'','X_ori','Y_ori','linewidth',1,'color',[135 206 235]/255) % grey % blue [58 95 205]/255
     box on
     axis([min(hazard.lon) max(hazard.lon) min(hazard.lat) max(hazard.lat)])
     title({['Differnce in flood height (m), ' sprintf('%d - %d year return period',1./hazard.frequency(e_i),1./hazard.frequency(e_i+1))]; '1D from MARN, 2D from GFA, 10m resolution'})

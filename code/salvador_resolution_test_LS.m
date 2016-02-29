@@ -9,6 +9,7 @@
 % 2) tropical cyclones in the metropolitan area of San Salvador (AMSS). 
 % Analyzed resolutions range from high resolution (~50 meter), mid 
 % resolution (~1 km) to low resolution (~10 km).
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 
 
 %% landslides
@@ -26,7 +27,7 @@ hazard = rmfield(hazard,'name');
 climada_map_plot(hazard)
 
 hazard.intensity_all = sum(hazard.intensity,1);
-figure; climada_map_plot(hazard,'intensity_all'); hold on; shape_plotter(polygon_canas,'','lon','lat')
+figure; climada_map_plot(hazard,'intensity_all'); hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 hold on; plot(entity_mid_res.assets.lon, entity_mid_res.assets.lat,'x','markersize',12)
 
 return_periods = [50 500 1000]; check_plot = 0;
@@ -38,10 +39,10 @@ LS_entity_file = [climada_global.data_dir filesep 'entities' filesep 'LS_entity_
 entity = climada_entity_read(LS_entity_file,'NOENCODE');
 climada_global.markersize = 3;
 climada_figuresize(0.6,0.8); climada_map_plot(entity_high_res,'Value','',{'Cat. 31' 'Cat. 32' 'Cat. 33' 'Cat. 34' 'Cat. 35' 'Cat. 36'}); 
-% hold on; shape_plotter(polygon_canas,'','lon','lat')
+% hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 climada_geo_distance(entity_high_res.assets.lon(1), entity_high_res.assets.lat(1), entity_high_res.assets.lon(2), entity_high_res.assets.lat(2))
-% figure;shape_plotter(polygon_ilopango,'','lon','lat')
-% shape_plotter(shape_rivers)
+% figure;climada_shapeplotter(polygon_ilopango,'','lon','lat')
+% climada_shapeplotter(shape_rivers)
 % rios_25k_shapes = climada_shaperead([salvador_data_dir filesep 'system' filesep 'rios_25k_polyline_WGS84.shp'],1);
 
 
@@ -65,7 +66,7 @@ save([climada_global.data_dir filesep 'results' filesep 'resolution_test' filese
 admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; selections = 0; scale_Value = [0 1 0];
 entity_nightlight = climada_nightlight_entity(admin0_name,admin1_name,selections,0,scale_Value);
 figure;climada_map_plot(entity_nightlight)
-hold on; shape_plotter(polygon_canas,'','lon','lat')
+hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 climada_geo_distance(entity.assets.lon(1), entity.assets.lat(1), entity.assets.lon(2), entity.assets.lat(2))
 climada_geo_distance(entity_mid_res.assets.lon(2), entity_mid_res.assets.lat(2), entity_mid_res.assets.lon(3), entity_mid_res.assets.lat(3))
 
@@ -101,7 +102,7 @@ entity_mid_res.measures.regional_scope = logical(ones(10,9));
 
 climada_global.markersize = 65;
 climada_figuresize(0.6,0.8);climada_map_plot(entity_mid_res)
-hold on; shape_plotter(polygon_canas,'','lon','lat')
+hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 climada_figure_axis_limits_equal_for_lat_lon([-89.145 -89.10 13.6895 13.727]); climada_figure_scale_add('',1,1)
 
 
@@ -111,7 +112,7 @@ EDS(2) = climada_EDS_calc(entity_mid_res,hazard,annotation_name);
 
 climada_global.markersize = 35;
 climada_figuresize(0.6,0.8); climada_map_plot(EDS(2),'ED_at_centroid','','');
-hold on; shape_plotter(polygon_canas,'','lon','lat')
+hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 % axis([-89.145 -89.095 13.6895 13.732])
 climada_figure_axis_limits_equal_for_lat_lon([-89.145 -89.10 13.6895 13.727]); climada_figure_scale_add('',1,1)
 
@@ -141,7 +142,7 @@ entity_low_res.assets.Deductible = [0 zeros(1,18)];
 
 climada_global.markersize = 120;
 climada_figuresize(0.6,0.8);climada_map_plot(entity_low_res)
-hold on; shape_plotter(polygon_canas,'','lon','lat')
+hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 % axis([-89.145 -89.095 13.6895 13.732])
 climada_figure_axis_limits_equal_for_lat_lon([-89.145 -89.10 13.6895 13.727]); climada_figure_scale_add('',1,1)
 
@@ -150,7 +151,7 @@ annotation_name = 'low resolution assets';
 EDS(3) = climada_EDS_calc(entity_low_res,hazard,annotation_name);
 
 climada_figuresize(0.6,0.8); climada_map_plot(EDS(3),'ED_at_centroid','','');
-hold on; shape_plotter(polygon_canas,'','lon','lat')
+hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 climada_figure_axis_limits_equal_for_lat_lon([-89.145 -89.10 13.6895 13.727]); climada_figure_scale_add('',1,1)
 
 % adaptation measures low resolution
@@ -181,9 +182,9 @@ entity = climada_entity_read(LS_entity_file,'NOENCODE');
 climada_global.markersize = 3;
 climada_figuresize(0.6,0.8); climada_map_plot(entity,'Value','',{'Cat. 31' 'Cat. 32' 'Cat. 33' 'Cat. 34' 'Cat. 35' 'Cat. 36'});
 climada_geo_distance(entity.assets.lon(1), entity.assets.lat(1), entity.assets.lon(2), entity.assets.lat(2))
-% figure;shape_plotter(polygon_LS,'','lon','lat')
-% figure;shape_plotter(polygon_ilopango,'','lon','lat')
-% shape_plotter(shape_rivers)
+% figure;climada_shapeplotter(polygon_LS,'','lon','lat')
+% figure;climada_shapeplotter(polygon_ilopango,'','lon','lat')
+% climada_shapeplotter(shape_rivers)
 % rios_25k_shapes = climada_shaperead([salvador_data_dir filesep 'system' filesep 'rios_25k_polyline_WGS84.shp'],1);
 
 

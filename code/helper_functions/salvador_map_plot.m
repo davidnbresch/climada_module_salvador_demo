@@ -30,6 +30,7 @@ function fig = salvador_map_plot(entity,EDS,fieldname_to_plot,peril_criterum,uni
 % Lea Mueller, muellele@gmail.com, 20150731, init
 % Lea Mueller, muellele@gmail.com, 20150801, return if invalid selection
 % Lea Mueller, muellele@gmail.com, 20150804, differentiate axis_limits for TC and FL
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 %-
 
 global climada_global
@@ -172,9 +173,9 @@ fig = climada_figuresize(FIGURE_HEIGHT,FIGURE_WIDTH);
 cbar = plotclr(entity.assets.lon(is_selected), entity.assets.lat(is_selected), value(is_selected),...
        's',MARKERSIZE,1,miv,mav,cmap);
 if exist(shp_file,'file')
-    shape_plotter(shape_rivers,'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
-    %shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
-    %shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    climada_shapeplotter(shape_rivers,'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    %climada_shapeplotter(shape_rivers(indx_rivers_in_San_Salvador),'','X','Y','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+    %climada_shapeplotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
 end
 climada_figure_axis_limits_equal_for_lat_lon(AX_LIMITS)
 set(get(cbar,'ylabel'),'String', cbar_string,'fontsize',13);

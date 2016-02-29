@@ -22,6 +22,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 % Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
 % Lea Mueller, muellele@gmail.com, 20151217, use climada_global.data_dir instead of project_dir, use climada_assets_read and climada_discount_read instead of climada_entity_read
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 %-
 
 
@@ -416,8 +417,8 @@ diary off
 % fig = climada_figuresize(0.5,0.9);
 % is_selected = salvador_assets_select(entity,'FL','USD');
 % 
-% % shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
-% % shape_plotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
+% % climada_shapeplotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+% % climada_shapeplotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
 % cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end-1,:),...
 %     's',0.5,1,0,6,climada_colormap('FL'));
 % % plot(hazard.lon(logical(hazard.intensity(end,:))), hazard.lat(logical(hazard.intensity(end,:))),...
@@ -443,8 +444,8 @@ diary off
 % %% create entity figure
 % % fig = climada_figuresize(0.5,0.8);
 % % climada_entity_plot(entity,4)
-% % shape_plotter(shape_rivers(indx_rivers_in_San_Salvador),'','','','linewidth',0.2,'color',[0.0   0.6039   0.8039])
-% % % shape_plotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
+% % climada_shapeplotter(shape_rivers(indx_rivers_in_San_Salvador),'','','','linewidth',0.2,'color',[0.0   0.6039   0.8039])
+% % % climada_shapeplotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
 % % box on
 % % ax_limits = [-89.3 -89.05 13.64 13.81];
 % % climada_figure_axis_limits_equal_for_lat_lon(ax_limits)

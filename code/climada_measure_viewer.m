@@ -56,6 +56,7 @@ function varargout = climada_measure_viewer(varargin)
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
 % Jacob Anz, j.anz@gmx.net, 20151203 set new structure, make ready to process San Salvador and Barisal results
+% Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 %-
 
 % Last Modified by GUIDE v2.5 30-Nov-2015 10:28:05
@@ -653,13 +654,13 @@ function pushbutton2_Callback(hObject, eventdata, handles)
         set(handles.text15,'String','Please load a shape file first');
 
     elseif isfield(container, 'plot_river')&& container.plot_river==1 && isfield(container, 'shapes');
-        shape_plotter(container.shapes.shape_rivers)
+        climada_shapeplotter(container.shapes.shape_rivers)
     end
 
     if ~isfield(container, 'plot_roads') && get(handles.checkbox2,'Value')==1;
         set(handles.text15,'String','Please load a shape file first');
     elseif isfield(container, 'plot_roads')&& container.plot_roads==1 && isfield(container, 'shapes');
-        shape_plotter(container.shapes.shape_roads)
+        climada_shapeplotter(container.shapes.shape_roads)
     end
     set(handles.figure1, 'pointer', 'arrow');
     climada_logo(hObject, eventdata, handles);

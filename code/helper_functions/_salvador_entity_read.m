@@ -17,7 +17,7 @@ indx_salvador = find(strcmp({shapes.NAME_1},'San Salvador'));
 
 salvador_module_dir = ['\\CHRB1065.CORP.GWPNET.COM\homes\X\S3BXXW\Documents\lea\climada_git\climada_modules\salvador_demo\data\system'];
 shapes_river        = climada_shaperead([salvador_module_dir filesep 'rios_25k_polyline_WGS84.shp']);
-shape_plotter(shapes_river)
+climada_shapeplotter(shapes_river)
 
 
 %% create figures with asset maps for different categories
@@ -34,11 +34,11 @@ for c_i = 1:numel(categories_)+1
         titlestr = sprintf('Category %d',categories_(c_i));
     end
     climada_figuresize(0.3,0.9);
-    shape_plotter(shapes_river,'','','','-','color',[0.6 0.6 0.6])
+    climada_shapeplotter(shapes_river,'','','','-','color',[0.6 0.6 0.6])
     hold on 
     plotclr(entity.assets.lon(indx),entity.assets.lat(indx),entity.assets.Value(indx),'s',3,1,min_value,max_value);
     title(titlestr)
-    shape_plotter(shapes(indx_salvador))
+    climada_shapeplotter(shapes(indx_salvador))
     %axis equal
     %axis([-89.3 -89.05 13.6 13.81])
     box on
