@@ -110,7 +110,7 @@ entity_file_xls =   [module_data_dir filesep 'entities' filesep 'entity_AMSS.xls
 % Set UNISYS TC track data file (for info, see climada_tc_read_unisys_database)
 unisys_file     = [climada_global.data_dir filesep 'tc_tracks' filesep tc_track_file];
 
-% 3) Bathymetry parameters are set in tc_surge_hazard_create
+% 3) Bathymetry parameters are set in climada_ts_hazard_set
 DEM_img_file    = [module_data_dir filesep 'system' filesep 'dem-MUNICIPIOSll.txt'];
 DEM_save_file   = [module_data_dir filesep 'system' filesep strcat(strrep(admin_name,' ','_'),'_',num2str(adm_lvl),'_DEM.mat')];
 
