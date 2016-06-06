@@ -171,11 +171,11 @@ if isfield(entity.assets,'VALNaN'), entity.assets = rmfield(entity.assets,'VALNa
 
 % encode assets, encode to 20 m if peril FL
 if strcmp(peril_ID,'FL')
-    climada_global.max_distance_to_hazard = 20;
+    climada_global.max_encoding_distance_m = 20;
 else
-    climada_global.max_distance_to_hazard = 10^6;
+    climada_global.max_encoding_distance_m = 10^6;
 end
-entity = climada_assets_encode(entity,hazard,climada_global.max_distance_to_hazard);
+entity = climada_assets_encode(entity,hazard,climada_global.max_encoding_distance_m);
 force_re_encode = 0;
 
 

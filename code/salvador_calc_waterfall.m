@@ -17,7 +17,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, muellele@gmail.com, 20150924, cleanup and add new functions (salvador_entity_files_set, salvador_entity_future_create, salvador_hazard_future_save) 
 % Lea Mueller, muellele@gmail.com, 20150924, add diary_file
 % Lea Mueller, muellele@gmail.com, 20150925, check damagefunctions
-% Lea Mueller, muellele@gmail.com, 20150925, set max_distance_to_hazard to 10^6 if not FL
+% Lea Mueller, muellele@gmail.com, 20150925, set max_encoding_distance_m to 10^6 if not FL
 % Lea Mueller, muellele@gmail.com, 20151020, do not show legend in waterfall graph
 % Lea Mueller, muellele@gmail.com, 20151030, enable to select any entity/assets,damfun (uigetfile)
 % Lea Mueller, muellele@gmail.com, 20151106, rename to climada_EDS_ED_per_category_report from salvador_EDS_ED_per_category_report
@@ -183,11 +183,11 @@ clear EDS % init
 
 % encode to 20 m if peril FL
 if strcmp(peril_ID,'FL')
-    climada_global.max_distance_to_hazard = 20;
+    climada_global.max_encoding_distance_m = 20;
 else
-    climada_global.max_distance_to_hazard = 10^6;
+    climada_global.max_encoding_distance_m = 10^6;
 end
-entity = climada_assets_encode(entity,hazard,climada_global.max_distance_to_hazard);
+entity = climada_assets_encode(entity,hazard,climada_global.max_encoding_distance_m);
 force_re_encode = 0;
 
 % risk today

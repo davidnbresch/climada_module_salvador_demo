@@ -15,7 +15,7 @@
 %% landslides
 
 
-climada_global.max_distance_to_hazard = 10^6;
+climada_global.max_encoding_distance_m = 10^6;
 
 % load shps files
 load([climada_global.data_dir filesep 'results' filesep 'san_salvador_shps_adm2_rivers_salvador_polygon_LS.mat'])
