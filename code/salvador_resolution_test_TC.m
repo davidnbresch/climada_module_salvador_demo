@@ -14,7 +14,7 @@
 %% Tropical cyclones wind
 
 climada_global.font_scale = 1.4;
-climada_global.max_distance_to_hazard = 10^6;
+climada_global.max_encoding_distance_m = 10^6;
 climada_global.markersize = 5;
 
 % load shps files
