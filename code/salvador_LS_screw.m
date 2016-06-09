@@ -37,7 +37,7 @@ screw_mod(1).year               = 2040;
 screw_mod(1).hazard_crit        = 'category';
 screw_mod(1).criteria           = [0 1 2 3 4 5];
 screw_mod(1).bsxfun_op          = @times;
-    
+
 %extreme cc screw
 %stable intensity,  increased frequency
 screw_ext(1).hazard_fld         = 'frequency';

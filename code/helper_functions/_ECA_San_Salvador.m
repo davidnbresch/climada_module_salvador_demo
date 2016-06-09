@@ -1,5 +1,4 @@
-function [hazard_sets,EDS,centroids,entity]=ECA_San_Salvador(admin_name,...
-    adm_lvl,force_centroids_recalc,force_entity_recalc,force_hazard_recalc, check_plots)
+function [hazard_sets,EDS,centroids,entity]=ECA_San_Salvador(admin_name,adm_lvl,force_centroids_recalc,force_entity_recalc,force_hazard_recalc, check_plots)
 % climada
 % MODULE:
 % NAME:

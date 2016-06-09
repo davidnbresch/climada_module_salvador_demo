@@ -1,8 +1,6 @@
 function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_dir, growth_rate_eco, growth_rate_people,peril_ID)
-
-
-% calculate waterfall graph 
-%   - for San Salvador 
+% calculate waterfall graph
+%   - for San Salvador
 %   - salvador_calc_waterfall.m
 %   - calculate EDS for today, economic development,
 %     2040 moderate and 2040 extreme cc
@@ -14,7 +12,7 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 %
 % MODIFICATION HISTORY:
 % Lea Mueller, muellele@gmail.com, 20150901, init
-% Lea Mueller, muellele@gmail.com, 20150924, cleanup and add new functions (salvador_entity_files_set, salvador_entity_future_create, salvador_hazard_future_save) 
+% Lea Mueller, muellele@gmail.com, 20150924, cleanup and add new functions (salvador_entity_files_set, salvador_entity_future_create, salvador_hazard_future_save)
 % Lea Mueller, muellele@gmail.com, 20150924, add diary_file
 % Lea Mueller, muellele@gmail.com, 20150925, check damagefunctions
 % Lea Mueller, muellele@gmail.com, 20150925, set max_encoding_distance_m to 10^6 if not FL
@@ -24,7 +22,6 @@ function EDS = salvador_calc_waterfall(nametag,assets_file,damfun_file,results_d
 % Lea Mueller, muellele@gmail.com, 20151217, use climada_global.data_dir instead of project_dir, use climada_assets_read and climada_discount_read instead of climada_entity_read
 % Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
 %-
-
 
 EDS = []; %init
 
@@ -51,7 +48,7 @@ if ~exist('peril_ID', 'var'), peril_ID = ''; end
 % PARAMETERS
 % if isempty(nametag), nametag = inputdlg('Enter a name for the file');nametag = nametag{1};end
 % if isempty(nametag), nametag = 'unknown';end
-if isempty(results_dir) 
+if isempty(results_dir)
     if exist([climada_global.project_dir filesep 'results'],'dir')
         results_dir = [climada_global.project_dir filesep 'results' filesep sprintf('%s_waterfall_',datestr(now,'YYYYmmdd')) nametag];
     else
@@ -84,7 +81,7 @@ if isempty(peril_ID) && strcmp(climada_global.project_dir, climada_global.data_d
     peril_name_list = {'FL Acelhuate' 'TC AMSS' 'LS Las Canas' 'LS Acelhuate'};
     peril_list = {'FL' 'TC' 'LS_las_canas' 'LS_acelhuate'};
     [selection,ok] = listdlg('PromptString','Select peril and area:',...
-    'ListString',peril_name_list,'SelectionMode','SINGLE');
+        'ListString',peril_name_list,'SelectionMode','SINGLE');
     pause(0.1)
     if ~isempty(selection)
         peril_ID = peril_list{selection};
@@ -110,11 +107,11 @@ else
         hazard = climada_hazard_load;
         if isempty(hazard), return, end
         hazard_set_file = hazard.filename;
-        peril_ID = hazard.peril_ID;        
+        peril_ID = hazard.peril_ID;
         if strcmp(peril_ID,'LS')
             LS_name = {'las_canas' 'acelhuate'};
             [selection,ok] = listdlg('PromptString','Select Landslide area:',...
-            'ListString',LS_name,'SelectionMode','SINGLE');
+                'ListString',LS_name,'SelectionMode','SINGLE');
             pause(0.1)
             if ~isempty(selection)
                 peril_ID = ['LS_' LS_name{selection}];
@@ -207,8 +204,8 @@ timehorizon = climada_global.future_reference_year;
 cc_scenario = 'moderate';
 hazard = [];
 hazard_set_file = strrep(hazard_set_file,...
-        sprintf('%s_%d', peril_ID, climada_global.present_reference_year),...
-        sprintf('%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario));
+    sprintf('%s_%d', peril_ID, climada_global.present_reference_year),...
+    sprintf('%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario));
 if isempty(strfind(hazard_set_file,':')) || isempty(strfind(hazard_set_file,'\\')) %not yet full path
     %hazard_set_file = sprintf('Salvador_hazard_%s_%d_%s_cc', peril_ID, timehorizon, cc_scenario);
     hazard_set_file = [climada_global.project_dir filesep hazard_set_file];
@@ -267,13 +264,13 @@ unit_criterium = '';
 category_criterium = '';
 silent_mode = 1;
 [~,~,unit_list,category_criterium]...
-             = climada_assets_select(entity,hazard.peril_ID,unit_criterium,category_criterium,silent_mode);
+    = climada_assets_select(entity,hazard.peril_ID,unit_criterium,category_criterium,silent_mode);
 cc_scenario_names = {'moderate' 'extreme'};
 
 
 for u_i = 1:numel(unit_list)
     [is_selected,peril_criterum,unit_criterium,category_criterium] =...
-             climada_assets_select(entity,EDS(1).peril_ID,unit_list{u_i},'',silent_mode);  
+        climada_assets_select(entity,EDS(1).peril_ID,unit_list{u_i},'',silent_mode);
     for EDS_i = 1:numel(EDS)
         EDS(EDS_i).ED = sum(EDS(EDS_i).ED_at_centroid(is_selected));
         EDS(EDS_i).Value = sum(EDS(EDS_i).assets.Value(is_selected));
@@ -333,14 +330,14 @@ diary off
 
 
 
-    
+
 
 % %% unit_criterium = 'USD';
 % unit_criterium = 'people';
 % % cc_scenario = 'moderate';
 % cc_scenario = 'extreme';
 % [is_selected,peril_criterum,unit_criterium,category_criterium] =...
-%             climada_assets_select(entity,EDS(1).peril_ID,unit_criterium);        
+%             climada_assets_select(entity,EDS(1).peril_ID,unit_criterium);
 % for EDS_i = 1:numel(EDS)
 %     EDS(EDS_i).ED = sum(EDS(EDS_i).ED_at_centroid(is_selected));
 %     EDS(EDS_i).Value = sum(EDS(EDS_i).assets.Value(is_selected));
@@ -370,13 +367,13 @@ diary off
 
 
 %% calculate damage
-% 
+%
 % EDS = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
 % % save([climada_global.project_dir filesep 'Salvador_EDS_FL_2015_new_damagefun'],'EDS')
 % % EDS(2) = climada_EDS_calc(entity,hazard,annotation_name,force_re_encode);
-% 
-% 
-% 
+%
+%
+%
 % %% create ED report
 % % timehorizon = 2015;
 % % peril_ID    = 'FL';
@@ -394,13 +391,13 @@ diary off
 % category_list = unique(entity.assets.Category(salvador_assets_select(entity,peril_ID)));
 % % print_figure = 1;
 % print_figure = 0;
-% 
+%
 % for f_i = 1%:numel(fieldname_list)
 %     for c_i = 1:numel(category_list)
 %         fig = salvador_map_plot(entity,EDS,fieldname_list{f_i},peril_ID,'',category_list(c_i),print_figure);
 %         cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end-1,:),...
 %                's',0.5,1,0,6,climada_colormap('FL'));
-%         pdf_filename= sprintf('Assets_orig_cat_%d.png',c_i);   
+%         pdf_filename= sprintf('Assets_orig_cat_%d.png',c_i);
 %         print(fig,'-dpng',[climada_global.project_dir filesep 'PLOTS' filesep pdf_filename])
 %     end %c_i
 % end %f_i
@@ -411,19 +408,19 @@ diary off
 % % unit_criterium = 'USD';
 % % category_criterium = '';
 % % salvador_map_plot(entity,'',fieldname_to_plot,peril_criterium,unit_criterium,category_criterium,print_figure);
-% 
-% 
+%
+%
 % %% create figure assets FL and hazard FL
 % fig = climada_figuresize(0.5,0.9);
 % is_selected = salvador_assets_select(entity,'FL','USD');
-% 
+%
 % % climada_shapeplotter(shape_rivers(indx_rivers_in_San_Salvador),'','X_ori','Y_ori','linewidth',0.2,'color',[0.0   0.6039   0.8039])
 % % climada_shapeplotter(shape_roads(indx_roads_in_San_Salvador),'','','','linewidth',0.02,'color',[234 234 234]/255) %[0.3176 0.3176 0.3176])
 % cbar = plotclr(hazard.lon, hazard.lat, hazard.intensity(end-1,:),...
 %     's',0.5,1,0,6,climada_colormap('FL'));
 % % plot(hazard.lon(logical(hazard.intensity(end,:))), hazard.lat(logical(hazard.intensity(end,:))),...
 % %     's','markersize',0.5,'color','b');
-% 
+%
 % % cbar = plotclr(entity.assets.lon(is_selected), entity.assets.lat(is_selected), entity.assets.Value(is_selected)/100000,...
 % %     'p',0.5,1,0,1,climada_colormap('assets'));
 % hold on
@@ -438,9 +435,9 @@ diary off
 % title('Assets (Flood, 2015) and 50 year flood','fontsize',13)
 % % print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_FL_2015_hazard_100_year.pdf'])
 % print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_FL_2015_hazard_50_year.pdf'])
-% 
-% 
-% 
+%
+%
+%
 % %% create entity figure
 % % fig = climada_figuresize(0.5,0.8);
 % % climada_entity_plot(entity,4)
@@ -452,9 +449,9 @@ diary off
 % % climada_figure_scale_add('',0,1)
 % % title('Assets 2015','fontsize',13)
 % % print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_entity_assets_2015.pdf'])
-% 
-% 
-% 
+%
+%
+%
 % %% create damage frequency curve (DFC)
 % fig = climada_figuresize(0.4, 0.6);
 % plot(1./EDS.frequency, EDS.damage*10^-6,'.-')
@@ -468,9 +465,9 @@ diary off
 %            sprintf('Annual expected damage: %4.1f %%', EDS.ED/sum(entity.assets.Value(indx_assets))*100)};
 % text(2.5,82, textstr, 'verticalalignment','top','HorizontalAlignment','left','fontsize',11)
 % print(fig,'-dpdf',[climada_global.project_dir filesep 'PLOTS' filesep 'Salvador_DFC_FL_2015.pdf'])
-% 
+%
 % % DFC = climada_EDS2DFC(EDS);
 % % [fig,legend_str,return_period,sorted_damage] = climada_EDS_DFC(EDS);
-% 
-% 
+%
+%
 

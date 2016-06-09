@@ -1,16 +1,15 @@
-
-
+%
 % Resolution sensitivity analysis for climada applied to 
 % landslides and tropical cyclones in San Salvador
 % Lea Mueller, 20160219
 
 % Perform sensitivity analysis for different resolutions for two cases, 
-% 1) landslides in Las Cañas neighborhood in San Salvador and 
+% 1) landslides in Las Ca?as neighborhood in San Salvador and 
 % 2) tropical cyclones in the metropolitan area of San Salvador (AMSS). 
 % Analyzed resolutions range from high resolution (~50 meter), mid 
 % resolution (~1 km) to low resolution (~10 km).
 % Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
-
+%-
 
 %% landslides
 
@@ -70,7 +69,7 @@ hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 climada_geo_distance(entity.assets.lon(1), entity.assets.lat(1), entity.assets.lon(2), entity.assets.lat(2))
 climada_geo_distance(entity_mid_res.assets.lon(2), entity_mid_res.assets.lat(2), entity_mid_res.assets.lon(3), entity_mid_res.assets.lat(3))
 
-% filter out 18 points within las cañas
+% filter out 18 points within las ca?as
 % is_inside = inpoly([entity_nightlight.assets.lon; entity_nightlight.assets.lat]', [shapes.lon; shapes.lat]');
 is_inside = inpoly([entity_nightlight.assets.lon; entity_nightlight.assets.lat]', [polygon_canas.lon; polygon_canas.lat]');
 

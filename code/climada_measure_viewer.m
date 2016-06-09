@@ -1,5 +1,11 @@
 function varargout = climada_measure_viewer(varargin)
-% climada_measure_viewer MATLAB code for climada_measure_viewer.fig
+% climada measure 
+% MODULE:
+%   core
+% NAME:
+%   climada_measure_viewer
+% PURPOSE:
+%   plots entities, assets and damage
 %      climada_measure_viewer, by itself, creates a new climada_measure_viewer or raises the existing
 %      singleton*.
 %
@@ -19,13 +25,6 @@ function varargout = climada_measure_viewer(varargin)
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
-
-% MODULE:
-%   viewer
-% NAME:
-%   climada_measure_viewer
-% PURPOSE:
-%   plots entities, assets and damage
 % CALLING SEQUENCE:
 %   climada_measure_viewer
 %EXAMPLE
@@ -52,7 +51,6 @@ function varargout = climada_measure_viewer(varargin)
 %   A .mat file with the current selection
 %   An excel with the curretn selection
 %   A .kmz file with the current selection
-
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
 % Jacob Anz, j.anz@gmx.net, 20151203 set new structure, make ready to process San Salvador and Barisal results

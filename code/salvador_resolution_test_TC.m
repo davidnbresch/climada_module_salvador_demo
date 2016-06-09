@@ -1,15 +1,15 @@
-
+%
 % Resolution sensitivity analysis for climada applied to 
 % landslides and tropical cyclones in San Salvador
 % Lea Mueller, 20160219
 
 % Perform sensitivity analysis for different resolutions for two cases, 
-% 1) landslides in Las Cañas neighborhood in San Salvador and 
+% 1) landslides in Las Canas neighborhood in San Salvador and 
 % 2) tropical cyclones in the metropolitan area of San Salvador (AMSS). 
 % Analyzed resolutions range from high resolution (~50 meter), mid 
 % resolution (~1 km) to low resolution (~10 km).
 % Lea Mueller, muellele@gmail.com, 20160229, rename to climada_shapeplotter from shape_plotter
-
+%-
 
 %% Tropical cyclones wind
 

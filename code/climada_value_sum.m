@@ -33,10 +33,8 @@ function selection= climada_value_sum(entity,measures_impact,type,unit,timestamp
 %   current selected values.
 % MODIFICATION HISTORY:
 % Jacob Anz, j.anz@gmx.net, 20151106 init
-% Jacob Anz, j.anz@gmx.net, 20151203 modified the input so that
-% climada_assets_select can be called if categories are not numbers but
-% names
-%
+% Jacob Anz, j.anz@gmx.net, 20151203 modified the input so that climada_assets_select can be called if categories are not numbers but names
+% -
 
 if ~climada_init_vars,return;end % init/import global variables
 

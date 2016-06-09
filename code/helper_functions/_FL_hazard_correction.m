@@ -1,3 +1,6 @@
+%
+% no documenatation, see code
+%-
 
 adj = 0;
 
