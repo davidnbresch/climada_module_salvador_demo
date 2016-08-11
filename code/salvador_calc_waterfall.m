@@ -73,8 +73,8 @@ if ~exist(results_dir,'dir')
     diary(diary_file)
     fprintf('New results directory created.\n')
 else
-    fprintf('This directoy already exists. Please use another name.\n')
-    return
+   % fprintf('This directoy already exists. Please use another name.\n')
+   % return
 end
 
 if isempty(peril_ID) && strcmp(climada_global.project_dir, climada_global.data_dir)
