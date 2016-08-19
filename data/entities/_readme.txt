@@ -9,6 +9,7 @@ In order to TEST:
 3) then start climada and run
 >> hazard=climada_hazard_load('Salvador_hazard_FL_2015');
 >> entity=climada_entity_read('FL_entity_Acelhuate_TEST',hazard);
+Note: if you encounter troubles Excel files in climada, see at the bottom of this .txt file
 >> measures_impact=climada_measures_impact(entity,hazard,'no’);
 >> climada_adaptation_cost_curve(measures_impact);
 
@@ -29,6 +30,9 @@ FL_entity_Acelhuate_TEST | Salvador_hazard_FL_2015 :
  Captacion de agua de tech  5.3              20                8.2
  Captacion de agua de tech  1.8              15                3.8
  *Residual damage                         *-1.3e+02*
+
+
+Excel hint: in case you do get WARN and Error(s) after calling entity=climada_entity_read and/or if entity does only contain entity.assets.filenamem, please proceed as follows: Open the Excel file in Excel and save it under a new name, then delete the (now old) original Excel file and rename the one yu saved under a new name to the old name (in your file system), this usually fixes the issue with Excel.
 
 copyright (c) 2016, David N. Bresch, david.bresch@gmail.com
 all rights reserved.
