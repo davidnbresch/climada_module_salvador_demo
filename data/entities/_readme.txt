@@ -1,8 +1,9 @@
 contains the full entities for San Salvador, plus a TEST file. 
 
 In order to TEST:
-1) copy FL_entity_Acelhuate_TEST.xls to your local climada data folder 
+1) copy FL_entity_Acelhuate_TEST.xls (and .xlsx) to your local climada data folder 
 (either ../climada/data or ../climada_data)
+(there are .xls and .xslx as it might depend which one your local OS likes better)
 2) also copy ../hazards/Salvador_hazard_FL_2015.mat to your local climada data folder
 (either ../climada/data or ../climada_data)
 3) then start climada and run
