@@ -72,13 +72,13 @@ save([climada_global.data_dir filesep 'results' filesep 'resolution_test' filese
 
 %% mid resolution (1km)
 % mid resolution assets
-admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; selections = 0; scale_Value = [0 1 0];
-entity_nightlight = climada_nightlight_entity(admin0_name,admin1_name,selections,0,scale_Value);
+admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; p.nightlight_transform_poly=[1 0];
+entity_nightlight = climada_nightlight_entity(admin0_name,admin1_name,p);
 figure;climada_map_plot(entity_nightlight)
 hold on; climada_shapeplotter(polygon_AMSS,'','lon','lat')
 figure;climada_entity_plot(entity_nightlight)
 
-entity_nightlight_2 = climada_nightlight_entity(admin0_name,'La Libertad',selections,0,scale_Value);
+entity_nightlight_2 = climada_nightlight_entity(admin0_name,'La Libertad',p);
 figure;climada_map_plot(entity_nightlight_2)
 hold on; climada_shapeplotter(polygon_AMSS,'','lon','lat')
 
@@ -147,13 +147,13 @@ save([climada_global.data_dir filesep 'results' filesep 'resolution_test' filese
 
 %% low resolution (10 km)
 
-admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; selections = 10; scale_Value = [0 1 0];
-entity_nightlight_10km = climada_nightlight_entity(admin0_name,admin1_name,selections,0,scale_Value);
+admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; p.nightlight_transform_poly=[1 0]; p.resolution_km=10;
+entity_nightlight_10km = climada_nightlight_entity(admin0_name,admin1_name,p);
 figure;climada_map_plot(entity_nightlight_10km)
 hold on; climada_shapeplotter(polygon_AMSS,'','lon','lat')
 % figure;climada_entity_plot(entity_nightlight_10km)
 
-entity_nightlight_10km_2 = climada_nightlight_entity(admin0_name,'La Libertad',selections,0,scale_Value);
+entity_nightlight_10km_2 = climada_nightlight_entity(admin0_name,'La Libertad',p);
 figure;climada_map_plot(entity_nightlight_10km_2)
 hold on; climada_shapeplotter(polygon_AMSS,'','lon','lat')
 

@@ -62,8 +62,8 @@ save([climada_global.data_dir filesep 'results' filesep 'resolution_test' filese
 
 %% mid resolution (1km)
 % mid resolution assets
-admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; selections = 0; scale_Value = [0 1 0];
-entity_nightlight = climada_nightlight_entity(admin0_name,admin1_name,selections,0,scale_Value);
+admin0_name = 'El Salvador'; admin1_name = 'San Salvador'; p.nightlight_transform_poly=[1 0];
+entity_nightlight = climada_nightlight_entity(admin0_name,admin1_name,p);
 figure;climada_map_plot(entity_nightlight)
 hold on; climada_shapeplotter(polygon_canas,'','lon','lat')
 climada_geo_distance(entity.assets.lon(1), entity.assets.lat(1), entity.assets.lon(2), entity.assets.lat(2))

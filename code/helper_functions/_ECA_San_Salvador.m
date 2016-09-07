@@ -217,7 +217,7 @@ else
         load(country_entity_file)       % Load existing file
     else
         % Entity from high resolution night lights
-        entity = climada_nightlight_entity(country_name,admin_name,1);
+        entity = climada_nightlight_entity(country_name,admin_name);
         save(country_entity_file,'entity');     % Save for next time
     end
     
