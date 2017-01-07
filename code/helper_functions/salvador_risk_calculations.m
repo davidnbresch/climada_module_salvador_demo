@@ -690,7 +690,7 @@ entity_future.assets.filename = entity_future_file_xls;
 
 
 %% event damage set
-climada_global.EDS_at_centroid = 1;
+climada_global.damage_at_centroid = 1;
 
 % EDS today
 EDS = climada_EDS_calc(entity,hazard);
